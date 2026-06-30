@@ -15,7 +15,7 @@ It does not decide workflow meaning, execute actions, or own lifecycle truth.
 ## Current Phase
 
 Wave 3 — x-feedback  
-Phase 1 — Core Feedback Grammar and Channel Contract Baseline  
+Phase 2 — Feedback Event Mapping Baseline  
 Status: Complete  
 Last updated: 2026-06-30
 
@@ -47,12 +47,25 @@ Last updated: 2026-06-30
   - `PassthroughFeedbackTemplateResolver`
   - `NullFeedbackCredentialResolver`
   - `NullFeedbackChannelDriver`
+- Completed Phase 2 Feedback Event Mapping Baseline:
+  - added `FeedbackEventData`
+  - added `FeedbackEventMapperContract`
+  - added `FeedbackEventMapperRegistryContract`
+  - added `FeedbackEventMapperRegistry`
+  - added `UnknownFeedbackEventMapperException`
+  - added package config mapper extension seam
+  - supports runtime mapper registration
+  - supports class-string mapper resolution through the Laravel container
+  - maps registered feedback events into feedback intents
+  - fails closed for unmapped events before delivery dispatch
+  - keeps mapping independent from delivery persistence, routes, actions, journal, and lifecycle truth
 
 ## Discoveries
 
 - `/Users/rli/PhpstormProjects/packages/x-feedback` did not exist before Wave 3.
 - The planning file `x-feedbacl_codex_instructions.md` contains a filename typo but is the active Codex instruction file.
 - Phase 1 can be implemented without touching x-change, x-action, x-journal, or any provider package.
+- Phase 2 can translate generic event facts into feedback intents without adding real delivery or host package dependencies.
 
 ## Risks
 
@@ -60,6 +73,8 @@ Last updated: 2026-06-30
 - Real delivery drivers must not bypass delivery tracking once persistence is introduced.
 - Message payloads may contain sensitive action, beneficiary, claim, or provider context and will need redaction before operator exposure.
 - The null driver is a safe baseline and test seam, not proof of real provider delivery.
+- Feedback event mappers can accidentally become business-decision code if they start inferring lifecycle state instead of translating supplied event facts.
+- Unknown event mappings fail closed, which is safe but requires host packages to register mappers explicitly.
 
 ## Architectural Decisions
 
@@ -68,6 +83,9 @@ Last updated: 2026-06-30
 - Bind a null channel driver by default for safe package tests.
 - Keep Phase 1 non-persistent and provider-free.
 - Do not add routes, controllers, models, queues, or host package integrations in Phase 1.
+- Keep feedback event mapping separate from delivery dispatch.
+- Treat `FeedbackEventData` as a fact supplied by upstream packages, not a lifecycle decision made by x-feedback.
+- Bind `FeedbackEventMapperRegistryContract` as the package-consumer seam for event-to-intent mapping.
 
 ## Test Coverage Status
 
@@ -83,19 +101,24 @@ Current coverage:
 - package config default
 - architecture safety boundaries
 - green x-feedback package suite: `9 passed, 38 assertions`
+- generic feedback event modeling
+- registered event-to-intent mapping
+- mapper class-string container resolution
+- unknown event fail-closed behavior
+- event mapping boundary safety
+- green x-feedback package suite: `15 passed, 71 assertions`
 
 ## Next Recommended Phase
 
-Phase 2 — Feedback Event Mapping Baseline.
+Phase 3 — Template Resolution Baseline.
 
 Recommended scope:
 
-- generic feedback event DTO
-- mapper contract
-- mapper registry
-- event-to-intent tests
-- no real provider delivery
-- no lifecycle truth ownership
+- template data DTOs
+- template registry/resolver
+- locale/profile-aware resolution tests
+- no real channel/provider delivery
+- no persistence
 
 ## Open Questions
 

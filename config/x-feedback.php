@@ -6,4 +6,8 @@ return [
     'channels' => [
         'null' => NullFeedbackChannelDriver::class,
     ],
+
+    'mappers' => [
+        //
+    ],
 ];

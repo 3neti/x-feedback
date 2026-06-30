@@ -15,6 +15,12 @@ Phase 1 tests cover:
 - service provider bindings
 - package config defaults
 - architecture boundaries
+- generic feedback event modeling
+- event mapper registration
+- event-to-intent mapping
+- mapper class-string resolution through the container
+- unknown feedback event fail-closed behavior
+- event mapping independence from delivery persistence, routes, actions, journal, and lifecycle truth
 
 ## Required Future Coverage
 

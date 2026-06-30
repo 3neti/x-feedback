@@ -40,13 +40,41 @@ Deferred:
 
 ## Next Recommended Phase
 
-Phase 2 — Feedback Event Mapping Baseline.
+## Phase 2 — Feedback Event Mapping Baseline
+
+Status: Complete.
+
+Implemented:
+
+- `FeedbackEventData`
+- `FeedbackEventMapperContract`
+- `FeedbackEventMapperRegistryContract`
+- `FeedbackEventMapperRegistry`
+- `UnknownFeedbackEventMapperException`
+- package config mapper extension seam
+- event-to-intent mapping tests
+- class-string mapper resolution through the container
+- fail-closed unknown event behavior
+
+Deferred:
+
+- no real provider delivery
+- real host event mappers
+- database delivery records
+- queues
+- retries
+- templates
+- x-action integration
+- x-journal integration
+
+## Next Recommended Phase
+
+Phase 3 — Template Resolution Baseline.
 
 Recommended scope:
 
-- generic feedback event DTO
-- mapper contract
-- mapper registry
-- event-to-intent tests
-- no real provider delivery
-- no lifecycle truth ownership
+- template data DTOs
+- template registry/resolver
+- locale/profile-aware resolution tests
+- no real channel/provider delivery
+- no persistence

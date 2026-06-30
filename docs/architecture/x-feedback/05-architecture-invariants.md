@@ -37,7 +37,7 @@ Avoid boolean-only delivery state.
 
 ## Phase 1 Is Non-Persistent
 
-Phase 1 must not introduce:
+Early feedback phases must not introduce:
 
 - delivery tables
 - models
@@ -45,6 +45,20 @@ Phase 1 must not introduce:
 - controllers
 - queues
 - provider SDKs
+
+## Event Mapping Does Not Decide Truth
+
+Feedback event mappers translate upstream facts into communication intents.
+
+They must not:
+
+- decide whether a claim succeeded
+- decide whether a payment settled
+- inspect voucher internals to infer lifecycle state
+- mutate workflow state
+- dispatch deliveries directly
+
+If an event is not registered, mapping must fail closed before delivery dispatch.
 
 ## Communication Is Not Execution
 
