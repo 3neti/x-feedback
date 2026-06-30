@@ -15,6 +15,7 @@ use LBHurtado\XFeedback\Contracts\FeedbackEventMapperRegistryContract;
 use LBHurtado\XFeedback\Contracts\FeedbackJournalReceiptMapperContract;
 use LBHurtado\XFeedback\Contracts\FeedbackProviderCallbackMapperContract;
 use LBHurtado\XFeedback\Contracts\FeedbackReceiptHandoffMapperContract;
+use LBHurtado\XFeedback\Contracts\FeedbackRetryFreshnessEvaluatorContract;
 use LBHurtado\XFeedback\Contracts\FeedbackTemplateRegistryContract;
 use LBHurtado\XFeedback\Contracts\FeedbackTemplateResolverContract;
 use LBHurtado\XFeedback\Services\FeedbackChannelRegistry;
@@ -27,6 +28,7 @@ use LBHurtado\XFeedback\Services\FeedbackEventMapperRegistry;
 use LBHurtado\XFeedback\Services\FeedbackJournalReceiptMapper;
 use LBHurtado\XFeedback\Services\FeedbackProviderCallbackMapper;
 use LBHurtado\XFeedback\Services\FeedbackReceiptHandoffMapper;
+use LBHurtado\XFeedback\Services\FeedbackRetryFreshnessEvaluator;
 use LBHurtado\XFeedback\Services\FeedbackTemplateRegistry;
 use LBHurtado\XFeedback\Services\FeedbackTemplateResolver;
 use LBHurtado\XFeedback\Services\InMemoryFeedbackDeliveryAttemptRecorder;
@@ -58,6 +60,7 @@ final class XFeedbackServiceProvider extends ServiceProvider
         $this->app->singleton(FeedbackJournalReceiptMapperContract::class, FeedbackJournalReceiptMapper::class);
         $this->app->singleton(FeedbackProviderCallbackMapperContract::class, FeedbackProviderCallbackMapper::class);
         $this->app->singleton(FeedbackReceiptHandoffMapperContract::class, FeedbackReceiptHandoffMapper::class);
+        $this->app->singleton(FeedbackRetryFreshnessEvaluatorContract::class, FeedbackRetryFreshnessEvaluator::class);
         $this->app->singleton(FeedbackCredentialResolverContract::class, NullFeedbackCredentialResolver::class);
         $this->app->singleton(FeedbackDispatcherContract::class, FeedbackDispatcher::class);
         $this->app->singleton(FeedbackEventMapperRegistryContract::class, function ($app): FeedbackEventMapperRegistry {

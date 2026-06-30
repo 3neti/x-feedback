@@ -15,7 +15,7 @@ It does not decide workflow meaning, execute actions, or own lifecycle truth.
 ## Current Phase
 
 Wave 3 — x-feedback  
-Phase 9 — Provider Callback Feedback Mapping Baseline  
+Phase 10 — Retry and Freshness Policy Baseline  
 Status: Complete  
 Last updated: 2026-06-30
 
@@ -130,6 +130,15 @@ Last updated: 2026-06-30
   - maps provider callback facts into `FeedbackEventData`
   - normalizes provider callback statuses into delivery statuses
   - keeps webhook routes, provider SDKs, persistence, queues, and host integrations deferred
+- Completed Phase 10 Retry and Freshness Policy Baseline:
+  - added `FeedbackRetryPolicyData`
+  - added `FeedbackRetryDecisionData`
+  - added `FeedbackRetryFreshnessEvaluatorContract`
+  - added `FeedbackRetryFreshnessEvaluator`
+  - added package-consumer binding for retry/freshness evaluation
+  - classifies retryable, final, expired, exhausted, and pending delivery records
+  - calculates next retry timestamps from policy backoff
+  - keeps queued retries, persistence, provider SDKs, routes, and host integrations deferred
 
 ## Discoveries
 
@@ -149,6 +158,8 @@ Last updated: 2026-06-30
 - Journal-ready feedback payloads should be treated as handoff data, not persisted journal entries.
 - Phase 9 can normalize provider callback facts without owning provider lifecycle truth.
 - Callback mapping can feed existing receipt and event seams without introducing HTTP routes or provider SDKs.
+- Phase 10 can produce retry/freshness decisions without scheduling jobs or mutating delivery records.
+- Retry policy evaluation can remain deterministic by accepting an explicit `now` timestamp in tests and callers.
 
 ## Risks
 
@@ -172,6 +183,8 @@ Last updated: 2026-06-30
 - x-feedback must not call x-journal directly unless a later explicit integration slice authorizes a dependency or adapter.
 - Provider callbacks may be duplicated by provider retries. Idempotency is not solved in Phase 9.
 - Provider-supplied statuses are communication facts only and must not be treated as settlement, reconciliation, or claim lifecycle truth.
+- Retry/freshness decisions are advisory. Hosts must not treat them as queued jobs, persisted retry state, or provider execution.
+- Backoff policy must be aligned with provider rate limits before production delivery providers are introduced.
 
 ## Architectural Decisions
 
@@ -207,6 +220,9 @@ Last updated: 2026-06-30
 - Bind `FeedbackProviderCallbackMapperContract` as the package-consumer seam for callback fact normalization.
 - Map callbacks into existing receipt and event DTOs instead of adding webhook controllers or provider-specific SDK code.
 - Keep provider callback mapping non-persistent and side-effect free.
+- Bind `FeedbackRetryFreshnessEvaluatorContract` as the package-consumer seam for delivery retry/freshness classification.
+- Keep retry/freshness evaluation side-effect free; it returns decisions and never queues retries.
+- Keep retry/freshness policy independent from provider SDKs and host queues.
 
 ## Test Coverage Status
 
@@ -283,16 +299,25 @@ Current coverage:
 - provider callback mapping boundary safety
 - green focused Phase 9 suite: `6 passed, 44 assertions`
 - green x-feedback package suite: `58 passed, 324 assertions`
+- retry/freshness policy DTO modeling
+- retryable delivery record classification
+- final delivery record classification
+- stale delivery record expiration classification
+- max-attempt exhaustion classification
+- retry/freshness evaluator package-consumer binding
+- retry/freshness boundary safety
+- green focused Phase 10 suite: `7 passed, 33 assertions`
+- green x-feedback package suite: `65 passed, 357 assertions`
 
 ## Next Recommended Phase
 
-Phase 10 — Retry and Freshness Policy Baseline.
+Phase 11 — Preference and Suppression Policy Baseline.
 
 Recommended scope:
 
-- define retry/freshness policy DTOs and evaluators
-- classify retryable/final/expired delivery facts without queueing retries
-- keep real provider SDKs, webhook routes, persistence, queues, and host integrations deferred unless explicitly authorized
+- define recipient/channel preference DTOs
+- evaluate suppression, opt-out, quiet-hours, and required-channel policy
+- keep persistence, provider SDKs, queues, routes, and host integrations deferred unless explicitly authorized
 
 ## Open Questions
 
@@ -303,3 +328,4 @@ Recommended scope:
 - Should delivery records eventually be persisted directly in x-feedback, or should durable history live only in x-journal?
 - Which provider callback shape should become the first host adapter: SMS delivery receipt, email bounce, webhook acknowledgement, or operator alert callback?
 - Should provider callback idempotency belong in x-feedback delivery records, x-journal, or host adapters?
+- Should retry/freshness decisions eventually be recorded in x-feedback, x-journal, or only host orchestration state?

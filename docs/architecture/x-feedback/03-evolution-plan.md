@@ -252,12 +252,38 @@ Deferred:
 - no callback idempotency
 - no host package integration
 
+## Phase 10 — Retry and Freshness Policy Baseline
+
+Status: Complete.
+
+Implemented:
+
+- `FeedbackRetryPolicyData`
+- `FeedbackRetryDecisionData`
+- `FeedbackRetryFreshnessEvaluatorContract`
+- `FeedbackRetryFreshnessEvaluator`
+- retry/freshness evaluator service-provider binding
+- retryable delivery record classification
+- final delivery record classification
+- stale delivery record expiration classification
+- max-attempt exhaustion classification
+- next retry timestamp calculation from backoff policy
+
+Deferred:
+
+- no queued retries
+- no database persistence
+- no retry jobs
+- no provider SDKs
+- no routes
+- no host package integration
+
 ## Next Recommended Phase
 
-Phase 10 — Retry and Freshness Policy Baseline.
+Phase 11 — Preference and Suppression Policy Baseline.
 
 Recommended scope:
 
-- define retry/freshness policy DTOs and evaluators
-- classify retryable/final/expired delivery facts without queueing retries
-- keep real provider SDKs, webhook routes, persistence, queues, and host integrations deferred unless explicitly authorized
+- define recipient/channel preference DTOs
+- evaluate suppression, opt-out, quiet-hours, and required-channel policy
+- keep persistence, provider SDKs, queues, routes, and host integrations deferred unless explicitly authorized

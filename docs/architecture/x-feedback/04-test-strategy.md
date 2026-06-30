@@ -64,6 +64,13 @@ Phase 1 tests cover:
 - provider callback status normalization
 - provider callback mapper package-consumer binding
 - provider callback mapping independence from webhook routes, provider SDKs, persistence, queues, and host packages
+- retry/freshness policy DTO modeling
+- retryable delivery record classification
+- final delivery record classification
+- stale delivery record expiration classification
+- max-attempt exhaustion classification
+- retry/freshness evaluator package-consumer binding
+- retry/freshness independence from queues, persistence, provider SDKs, routes, and host packages
 
 ## Required Future Coverage
 
@@ -73,8 +80,8 @@ Future phases should add tests for:
 - template resolution
 - channel driver delivery dispatch preparation
 - delivery persistence
-- retry policy
 - expiration/freshness policy
+- preference and suppression policy
 - provider callback idempotency strategy
 - x-action CTA payload rendering
 - x-journal receipt handoff

@@ -173,6 +173,20 @@ It must not:
 
 Provider status values are communication facts only.
 
+## Retry Policy Does Not Execute Retries
+
+Retry and freshness policy evaluates delivery facts.
+
+It must not:
+
+- queue jobs
+- call providers
+- persist retry state
+- mutate delivery records
+- decide workflow or settlement state
+
+Retry decisions are advisory until a host or future authorized runtime acts on them.
+
 ## Communication Is Not Execution
 
 x-feedback must not:
