@@ -38,8 +38,6 @@ Deferred:
 - x-change integration
 - Cockpit visibility
 
-## Next Recommended Phase
-
 ## Phase 2 — Feedback Event Mapping Baseline
 
 Status: Complete.
@@ -67,14 +65,40 @@ Deferred:
 - x-action integration
 - x-journal integration
 
+## Phase 3 — Template Resolution Baseline
+
+Status: Complete.
+
+Implemented:
+
+- `FeedbackTemplateData`
+- `FeedbackTemplateRegistryContract`
+- `FeedbackTemplateRegistry`
+- `FeedbackTemplateResolver`
+- `UnknownFeedbackTemplateException`
+- package config template extension seam
+- key/locale/profile/channel template resolution
+- safe fallback to key-level default templates
+- placeholder rendering from template and intent variables
+- resolver binding through `FeedbackTemplateResolverContract`
+
+Deferred:
+
+- no real channel/provider delivery
+- no persistence
+- template persistence
+- template authoring UI
+- template versioning
+- template approval workflow
+- provider-specific rendering
+
 ## Next Recommended Phase
 
-Phase 3 — Template Resolution Baseline.
+Phase 4 — Channel Driver Selection and Delivery Planning Baseline.
 
 Recommended scope:
 
-- template data DTOs
-- template registry/resolver
-- locale/profile-aware resolution tests
-- no real channel/provider delivery
+- channel selection policy DTOs/contracts
+- delivery plan DTOs
+- no real provider delivery
 - no persistence

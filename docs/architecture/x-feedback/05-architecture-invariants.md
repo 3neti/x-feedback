@@ -60,6 +60,21 @@ They must not:
 
 If an event is not registered, mapping must fail closed before delivery dispatch.
 
+## Template Resolution Is Rendering Preparation
+
+Template resolution prepares message content.
+
+It must not:
+
+- send provider messages
+- persist delivery records
+- decide recipients
+- decide lifecycle truth
+- execute actions
+- mutate the original feedback intent
+
+Unknown templates must fail closed before provider delivery.
+
 ## Communication Is Not Execution
 
 x-feedback must not:

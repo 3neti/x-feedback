@@ -3,14 +3,16 @@
 use LBHurtado\XFeedback\Contracts\FeedbackChannelRegistryContract;
 use LBHurtado\XFeedback\Contracts\FeedbackCredentialResolverContract;
 use LBHurtado\XFeedback\Contracts\FeedbackDispatcherContract;
+use LBHurtado\XFeedback\Contracts\FeedbackTemplateRegistryContract;
 use LBHurtado\XFeedback\Contracts\FeedbackTemplateResolverContract;
 use LBHurtado\XFeedback\Services\NullFeedbackCredentialResolver;
-use LBHurtado\XFeedback\Services\PassthroughFeedbackTemplateResolver;
+use LBHurtado\XFeedback\Services\FeedbackTemplateResolver;
 
 it('binds the core feedback contracts', function () {
     expect(app(FeedbackDispatcherContract::class))->toBeInstanceOf(FeedbackDispatcherContract::class)
         ->and(app(FeedbackChannelRegistryContract::class))->toBeInstanceOf(FeedbackChannelRegistryContract::class)
-        ->and(app(FeedbackTemplateResolverContract::class))->toBeInstanceOf(PassthroughFeedbackTemplateResolver::class)
+        ->and(app(FeedbackTemplateRegistryContract::class))->toBeInstanceOf(FeedbackTemplateRegistryContract::class)
+        ->and(app(FeedbackTemplateResolverContract::class))->toBeInstanceOf(FeedbackTemplateResolver::class)
         ->and(app(FeedbackCredentialResolverContract::class))->toBeInstanceOf(NullFeedbackCredentialResolver::class);
 });
 

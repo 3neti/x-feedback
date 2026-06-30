@@ -21,6 +21,13 @@ Phase 1 tests cover:
 - mapper class-string resolution through the container
 - unknown feedback event fail-closed behavior
 - event mapping independence from delivery persistence, routes, actions, journal, and lifecycle truth
+- feedback template modeling
+- key/locale/profile/channel template resolution
+- unknown template fail-closed behavior
+- placeholder rendering from template and intent variables
+- proof that resolving an intent does not mutate the original intent
+- template registry and resolver bindings
+- template resolution independence from provider delivery, persistence, routes, and host packages
 
 ## Required Future Coverage
 

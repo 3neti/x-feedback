@@ -10,4 +10,8 @@ return [
     'mappers' => [
         //
     ],
+
+    'templates' => [
+        //
+    ],
 ];

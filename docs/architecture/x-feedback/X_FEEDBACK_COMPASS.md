@@ -15,7 +15,7 @@ It does not decide workflow meaning, execute actions, or own lifecycle truth.
 ## Current Phase
 
 Wave 3 — x-feedback  
-Phase 2 — Feedback Event Mapping Baseline  
+Phase 3 — Template Resolution Baseline  
 Status: Complete  
 Last updated: 2026-06-30
 
@@ -59,6 +59,18 @@ Last updated: 2026-06-30
   - maps registered feedback events into feedback intents
   - fails closed for unmapped events before delivery dispatch
   - keeps mapping independent from delivery persistence, routes, actions, journal, and lifecycle truth
+- Completed Phase 3 Template Resolution Baseline:
+  - added `FeedbackTemplateData`
+  - added `FeedbackTemplateRegistryContract`
+  - added `FeedbackTemplateRegistry`
+  - added `FeedbackTemplateResolver`
+  - added `UnknownFeedbackTemplateException`
+  - added package config template extension seam
+  - resolves templates by key, locale, profile, and channel
+  - falls back to key-level default templates
+  - renders placeholders from template defaults and intent variables
+  - preserves intent immutability during template resolution
+  - keeps template resolution independent from provider delivery, persistence, routes, and host packages
 
 ## Discoveries
 
@@ -66,6 +78,7 @@ Last updated: 2026-06-30
 - The planning file `x-feedbacl_codex_instructions.md` contains a filename typo but is the active Codex instruction file.
 - Phase 1 can be implemented without touching x-change, x-action, x-journal, or any provider package.
 - Phase 2 can translate generic event facts into feedback intents without adding real delivery or host package dependencies.
+- Phase 3 can render message content without invoking channel drivers or provider delivery.
 
 ## Risks
 
@@ -75,6 +88,8 @@ Last updated: 2026-06-30
 - The null driver is a safe baseline and test seam, not proof of real provider delivery.
 - Feedback event mappers can accidentally become business-decision code if they start inferring lifecycle state instead of translating supplied event facts.
 - Unknown event mappings fail closed, which is safe but requires host packages to register mappers explicitly.
+- Template resolution can expose sensitive variables in rendered content; future host-facing surfaces need redaction and preview rules.
+- Repeated template resolution does not imply delivery and must not be treated as a delivery attempt.
 
 ## Architectural Decisions
 
@@ -86,6 +101,9 @@ Last updated: 2026-06-30
 - Keep feedback event mapping separate from delivery dispatch.
 - Treat `FeedbackEventData` as a fact supplied by upstream packages, not a lifecycle decision made by x-feedback.
 - Bind `FeedbackEventMapperRegistryContract` as the package-consumer seam for event-to-intent mapping.
+- Bind `FeedbackTemplateRegistryContract` as the package-consumer seam for template registration.
+- Bind `FeedbackTemplateResolverContract` to the template-aware resolver by default.
+- Keep template resolution side-effect free and non-persistent.
 
 ## Test Coverage Status
 
@@ -107,16 +125,22 @@ Current coverage:
 - unknown event fail-closed behavior
 - event mapping boundary safety
 - green x-feedback package suite: `15 passed, 71 assertions`
+- feedback template modeling
+- locale/profile/channel template resolution
+- unknown template fail-closed behavior
+- placeholder rendering
+- template resolver immutability
+- template resolution boundary safety
+- green x-feedback package suite: `22 passed, 99 assertions`
 
 ## Next Recommended Phase
 
-Phase 3 — Template Resolution Baseline.
+Phase 4 — Channel Driver Selection and Delivery Planning Baseline.
 
 Recommended scope:
 
-- template data DTOs
-- template registry/resolver
-- locale/profile-aware resolution tests
+- channel selection policy DTOs/contracts
+- delivery plan DTOs
 - no real channel/provider delivery
 - no persistence
 
