@@ -26,6 +26,10 @@ return [
         ],
     ],
 
+    'notification_routes' => [
+        //
+    ],
+
     'mappers' => [
         //
     ],

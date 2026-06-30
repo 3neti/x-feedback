@@ -4,16 +4,17 @@ namespace LBHurtado\XFeedback\Services;
 
 use LBHurtado\XFeedback\Contracts\FeedbackChannelSelectorContract;
 use LBHurtado\XFeedback\Contracts\FeedbackDeliveryPlannerContract;
+use LBHurtado\XFeedback\Contracts\FeedbackNotificationRouteResolverContract;
 use LBHurtado\XFeedback\Data\FeedbackChannelSelectionPolicyData;
 use LBHurtado\XFeedback\Data\FeedbackDeliveryPlanData;
 use LBHurtado\XFeedback\Data\FeedbackDeliveryPlanItemData;
 use LBHurtado\XFeedback\Data\FeedbackIntentData;
-use LBHurtado\XFeedback\Data\FeedbackRecipientData;
 
 final class FeedbackDeliveryPlanner implements FeedbackDeliveryPlannerContract
 {
     public function __construct(
         private readonly FeedbackChannelSelectorContract $selector,
+        private readonly FeedbackNotificationRouteResolverContract $routeResolver,
     ) {}
 
     public function plan(FeedbackIntentData $intent, ?FeedbackChannelSelectionPolicyData $policy = null): FeedbackDeliveryPlanData
@@ -23,6 +24,8 @@ final class FeedbackDeliveryPlanner implements FeedbackDeliveryPlannerContract
 
         foreach ($intent->recipients as $recipient) {
             foreach ($channels as $channel) {
+                $route = $this->routeResolver->resolve($recipient, $channel->key);
+
                 $items[] = new FeedbackDeliveryPlanItemData(
                     intent_key: $intent->key,
                     recipient: $recipient,
@@ -31,7 +34,8 @@ final class FeedbackDeliveryPlanner implements FeedbackDeliveryPlannerContract
                     correlation_id: $intent->context?->correlation_id,
                     causation_id: $intent->context?->causation_id,
                     meta: [
-                        'route' => $this->routeFor($recipient, $channel->key),
+                        'route' => $route?->address,
+                        'notification_route' => $route?->toArray(),
                         'channel_options' => $channel->options,
                         'channel_meta' => $channel->meta,
                     ],
@@ -51,10 +55,5 @@ final class FeedbackDeliveryPlanner implements FeedbackDeliveryPlannerContract
                 'subject_id' => $intent->context?->subject_id,
             ],
         );
-    }
-
-    private function routeFor(FeedbackRecipientData $recipient, string $channel): mixed
-    {
-        return $recipient->routeFor($channel);
     }
 }

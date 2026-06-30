@@ -360,15 +360,14 @@ Deferred:
 
 ## Next Recommended Phase
 
-Phase 14 — Notification Route Baseline.
+Phase 15 — Feature Profile and Template Policy Baseline.
 
 Recommended scope:
 
-- add notification route DTOs
-- add route resolver contract and in-memory/config-backed resolver baseline
-- support route verification metadata and primary/fallback route ordering
-- compose routes with delivery planning without mutating recipients
-- keep database route book, contact package dependency, host route synchronization, provider delivery changes, lifecycle truth ownership, and routes deferred unless explicitly authorized
+- harden feature-profile semantics as institutional experiences
+- strengthen template resolver behavior around profile fallback and channel fallback
+- add tests proving feature profiles are not languages and do not own business meaning
+- keep template authoring UI, template persistence, approval/version workflow, lifecycle truth ownership, and host package coupling deferred unless explicitly authorized
 
 ## Functional Specification Priority
 
@@ -438,6 +437,8 @@ Deferred:
 
 ### Phase 14 — Notification Route Baseline
 
+Status: Complete.
+
 Functional specification coverage:
 
 - `NotificationRoute`
@@ -451,11 +452,28 @@ Recommended scope:
 - support route verification metadata and primary/fallback route ordering
 - compose routes with delivery planning without mutating recipients
 
+Implemented:
+
+- `FeedbackNotificationRouteData`
+- `FeedbackNotificationRouteResolverContract`
+- `FeedbackNotificationRouteResolver`
+- package config seam at `x-feedback.notification_routes`
+- service-provider binding for `FeedbackNotificationRouteResolverContract`
+- recipient route data normalization for scalar, single-array, and list-of-array route definitions
+- config-backed route resolution for package consumers without database route storage
+- deterministic route ordering by primary, verified, priority, and address
+- legacy recipient channel-field fallback while hosts migrate to `NotificationRoute`
+- delivery planning composition through the notification route resolver
+- route metadata in delivery plan items without mutating recipients
+- tests proving route resolution remains independent from persistence, the contact package, package routes, providers, host packages, workflow execution, and journal truth
+
 Deferred:
 
 - no database route book
 - no contact package dependency
 - no host route synchronization
+- no provider delivery changes
+- no lifecycle truth ownership
 
 ### Phase 15 — Feature Profile and Template Policy Baseline
 
