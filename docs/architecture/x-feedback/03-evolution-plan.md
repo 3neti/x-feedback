@@ -280,9 +280,31 @@ Deferred:
 
 ## Next Recommended Phase
 
-Phase 11 — Preference and Suppression Policy Baseline.
+Phase 11 — Channel Driver Architecture Backfill.
 
 Recommended scope:
+
+- reconcile the current package roadmap with `/Users/rli/PhpstormProjects/x-change-sandbox/docs/todo/x-feedback/03-evolution-plan.md`
+- expand `FeedbackChannelDriverContract` beyond `send` only if tests first prove the required `supports` and `health` behavior
+- add baseline non-provider channel drivers for the original todo plan:
+  - `null`
+  - `log`
+  - `in_app`
+  - `mail`
+  - `webhook`
+- keep provider SDKs, real HTTP webhook calls, SMTP assumptions, queues, routes, durable persistence, and host integrations deferred unless explicitly authorized
+- add driver registry and fail-closed tests for known and unknown channels
+- update the Compass with the resolved roadmap correction before moving to recipient preference/suppression work
+
+Reason:
+
+The original planning docs define Phase 2 as Channel Driver Architecture and list `mail`, `webhook`, `in_app`, `log`, and `null` as initial drivers. The package currently has the driver seam, registry, dispatcher, runtime execution, and null driver, but it does not yet have the concrete baseline driver set or the full `send` / `health` / `supports` driver surface. This backfill should be completed before continuing to higher-level preference and suppression policy.
+
+## Deferred Phase
+
+Phase 12 — Preference and Suppression Policy Baseline.
+
+Recommended scope after Phase 11:
 
 - define recipient/channel preference DTOs
 - evaluate suppression, opt-out, quiet-hours, and required-channel policy

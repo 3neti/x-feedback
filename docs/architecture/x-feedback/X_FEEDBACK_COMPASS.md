@@ -160,6 +160,8 @@ Last updated: 2026-06-30
 - Callback mapping can feed existing receipt and event seams without introducing HTTP routes or provider SDKs.
 - Phase 10 can produce retry/freshness decisions without scheduling jobs or mutating delivery records.
 - Retry policy evaluation can remain deterministic by accepting an explicit `now` timestamp in tests and callers.
+- Roadmap correction identified after Phase 10: the original todo plan defines early Channel Driver Architecture with baseline `mail`, `webhook`, `in_app`, `log`, and `null` drivers, while the package currently has only the channel driver seam, registry, dispatcher/runtime, and `null` driver.
+- The current package roadmap intentionally kept real delivery provider behavior deferred, but it should still backfill safe baseline drivers before moving to preference and suppression policy.
 
 ## Risks
 
@@ -185,6 +187,8 @@ Last updated: 2026-06-30
 - Provider-supplied statuses are communication facts only and must not be treated as settlement, reconciliation, or claim lifecycle truth.
 - Retry/freshness decisions are advisory. Hosts must not treat them as queued jobs, persisted retry state, or provider execution.
 - Backoff policy must be aligned with provider rate limits before production delivery providers are introduced.
+- Driver architecture drift creates confusion if higher-level policy slices assume concrete channels exist. Close the safe driver baseline before adding recipient preference and suppression policy.
+- Adding `mail` or `webhook` drivers can accidentally introduce real provider delivery. The backfill must keep these as framework seams or no-real-provider baselines unless explicitly authorized.
 
 ## Architectural Decisions
 
@@ -223,6 +227,9 @@ Last updated: 2026-06-30
 - Bind `FeedbackRetryFreshnessEvaluatorContract` as the package-consumer seam for delivery retry/freshness classification.
 - Keep retry/freshness evaluation side-effect free; it returns decisions and never queues retries.
 - Keep retry/freshness policy independent from provider SDKs and host queues.
+- Treat Phase 11 as a roadmap-correction slice: Channel Driver Architecture Backfill comes before preference/suppression policy.
+- Do not introduce real provider SDKs, real outbound webhook calls, queues, routes, durable persistence, or host coupling while backfilling baseline drivers.
+- Driver backfill must be test-first and must preserve fail-closed unknown channel behavior.
 
 ## Test Coverage Status
 
@@ -311,10 +318,19 @@ Current coverage:
 
 ## Next Recommended Phase
 
-Phase 11 — Preference and Suppression Policy Baseline.
+Phase 11 — Channel Driver Architecture Backfill.
 
 Recommended scope:
 
+- reconcile implementation with the original x-feedback todo Phase 2 driver architecture expectations
+- test and, if justified, extend `FeedbackChannelDriverContract` to support `send`, `health`, and `supports`
+- add safe baseline driver classes for `null`, `log`, `in_app`, `mail`, and `webhook`
+- add registry resolution tests for known drivers and unknown-driver fail-closed behavior
+- keep real provider delivery, provider SDKs, queues, routes, durable persistence, and host integrations deferred
+
+Deferred after Phase 11:
+
+- Phase 12 — Preference and Suppression Policy Baseline
 - define recipient/channel preference DTOs
 - evaluate suppression, opt-out, quiet-hours, and required-channel policy
 - keep persistence, provider SDKs, queues, routes, and host integrations deferred unless explicitly authorized
@@ -329,3 +345,4 @@ Recommended scope:
 - Which provider callback shape should become the first host adapter: SMS delivery receipt, email bounce, webhook acknowledgement, or operator alert callback?
 - Should provider callback idempotency belong in x-feedback delivery records, x-journal, or host adapters?
 - Should retry/freshness decisions eventually be recorded in x-feedback, x-journal, or only host orchestration state?
+- Should baseline `mail` and `webhook` drivers be true sending seams through Laravel Mail / HTTP, or non-sending test doubles until a provider-delivery slice is explicitly authorized?
