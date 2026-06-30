@@ -15,7 +15,7 @@ It does not decide workflow meaning, execute actions, or own lifecycle truth.
 ## Current Phase
 
 Wave 3 — x-feedback  
-Phase 5 — Delivery Dispatch Preparation and Receipt Handoff Baseline  
+Phase 6 — Delivery Attempt Runtime Baseline  
 Status: Complete  
 Last updated: 2026-06-30
 
@@ -94,6 +94,15 @@ Last updated: 2026-06-30
   - composes template resolution and delivery planning into a side-effect-free dispatch preparation seam
   - maps delivery results into provider receipt handoff payloads without persistence
   - keeps real provider delivery, durable delivery records, queues, routes, and host integrations deferred
+- Completed Phase 6 Delivery Attempt Runtime Baseline:
+  - added `FeedbackDeliveryAttemptData`
+  - added `FeedbackDeliveryAttemptRuntimeContract`
+  - added `FeedbackDeliveryAttemptRuntime`
+  - added package-consumer binding for the delivery attempt runtime
+  - executes prepared delivery plan items through registered channel drivers
+  - maps delivery results into provider receipt handoff payloads
+  - fails closed for unknown planned delivery channels before later plan items execute
+  - keeps durable delivery records, queues, routes, provider SDKs, and host integrations deferred
 
 ## Discoveries
 
@@ -105,6 +114,8 @@ Last updated: 2026-06-30
 - Phase 4 can create dry delivery plans without touching the channel driver registry; driver resolution remains a dispatch concern.
 - Phase 5 can compose template resolution and delivery planning without changing the existing dispatcher path.
 - Provider receipt handoff can be represented as portable data without introducing x-journal or delivery-record persistence.
+- Phase 6 can reuse the existing channel driver contract instead of creating a parallel provider API.
+- The delivery attempt runtime can execute prepared plans without altering the existing `FeedbackDispatcherContract` behavior.
 
 ## Risks
 
@@ -120,6 +131,8 @@ Last updated: 2026-06-30
 - Channel selection policy is routing preparation only; it is not lifecycle truth, authorization, or provider capability validation.
 - Dispatch preparations are previews/pre-flight bundles only. They are not delivery attempts and must not be counted as sent or queued messages.
 - Provider receipt handoff payloads can contain raw provider responses and require redaction before operator or beneficiary exposure.
+- Delivery attempts are executable runtime behavior even without persistence. Hosts must not rely on them for durability until a delivery-recording slice exists.
+- Unknown planned channels fail closed at runtime. Hosts should validate configuration before production dispatch paths.
 
 ## Architectural Decisions
 
@@ -142,6 +155,10 @@ Last updated: 2026-06-30
 - Bind `FeedbackReceiptHandoffMapperContract` as the provider-result-to-receipt handoff seam.
 - Keep receipt handoff DTOs portable and non-durable until a persistence or x-journal integration slice is explicitly authorized.
 - Do not alter the existing `FeedbackDispatcherContract` behavior in Phase 5.
+- Bind `FeedbackDeliveryAttemptRuntimeContract` as the package-consumer seam for executing prepared delivery plans.
+- Use the existing `FeedbackChannelDriverContract` for Phase 6 delivery attempts.
+- Fail closed when a prepared plan references an unregistered channel driver.
+- Keep delivery attempt runtime non-persistent and synchronous for the baseline.
 
 ## Test Coverage Status
 
@@ -186,17 +203,25 @@ Current coverage:
 - dispatch preparation boundary safety
 - green focused Phase 5 suite: `6 passed, 44 assertions`
 - green x-feedback package suite: `35 passed, 180 assertions`
+- prepared delivery plan execution through registered channel drivers
+- default null-driver delivery attempt execution
+- unknown planned channel fail-closed behavior before later side effects
+- delivery attempt receipt handoff generation
+- delivery attempt runtime package-consumer binding
+- delivery attempt runtime boundary safety
+- green focused Phase 6 suite: `5 passed, 28 assertions`
+- green x-feedback package suite: `40 passed, 208 assertions`
 
 ## Next Recommended Phase
 
-Phase 6 — Delivery Attempt Runtime Baseline.
+Phase 7 — Delivery Recording Strategy Baseline.
 
 Recommended scope:
 
-- execute prepared delivery plan items through registered channel drivers
-- keep durable delivery records deferred unless explicitly authorized
-- preserve provider receipt handoff as portable output data
-- keep queues, retries, provider SDKs, routes, and host integrations deferred
+- define delivery record contracts and DTO boundaries
+- decide whether the first recording seam is in-memory, database-backed, or x-journal handoff only
+- keep real provider SDKs, queues, retries, routes, and host integrations deferred unless explicitly authorized
+- preserve receipt handoff as portable output data
 
 ## Open Questions
 
@@ -204,4 +229,4 @@ Recommended scope:
 - Should durable delivery records belong directly in x-feedback or wait for x-journal receipt integration?
 - Which real channel should be implemented first: email, SMS, webhook, or in-app?
 - Should hosts be allowed to plan unregistered channel keys for future drivers, or should planning become fail-closed once real providers are introduced?
-- Should the first delivery attempt runtime operate only on registered drivers, or support dry-run mode for unregistered planned channels?
+- Should delivery records belong directly in x-feedback, only as x-journal handoffs, or both with clear canonical ownership?

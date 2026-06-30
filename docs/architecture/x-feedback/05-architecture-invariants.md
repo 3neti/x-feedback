@@ -115,6 +115,21 @@ It must not:
 - decide workflow state
 - expose raw provider payloads without host-level redaction
 
+## Delivery Attempt Runtime Is Not Durability
+
+The delivery attempt runtime may invoke registered channel drivers.
+
+It must not:
+
+- persist delivery records by itself
+- queue delivery jobs
+- retry failed deliveries
+- call unregistered channel drivers
+- decide workflow state
+- become the audit log
+
+Unknown planned channels must fail closed before later plan items are executed.
+
 ## Communication Is Not Execution
 
 x-feedback must not:

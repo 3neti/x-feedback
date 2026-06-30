@@ -40,6 +40,12 @@ Phase 1 tests cover:
 - delivery-result to provider-receipt handoff mapping
 - dispatch preparation and receipt handoff package-consumer bindings
 - dispatch preparation independence from provider delivery, persistence, routes, and host packages
+- prepared delivery plan execution through registered channel drivers
+- default null-driver delivery attempt execution
+- unknown planned channel fail-closed behavior before later side effects
+- delivery attempt receipt handoff generation
+- delivery attempt runtime package-consumer binding
+- delivery attempt runtime independence from persistence, queues, routes, and host packages
 
 ## Required Future Coverage
 
@@ -48,7 +54,6 @@ Future phases should add tests for:
 - domain event mapping
 - template resolution
 - channel driver delivery dispatch preparation
-- delivery attempt runtime
 - delivery persistence
 - retry policy
 - expiration/freshness policy

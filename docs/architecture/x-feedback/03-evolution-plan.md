@@ -152,13 +152,38 @@ Deferred:
 - no x-journal delivery receipt integration
 - no host package integration
 
+## Phase 6 — Delivery Attempt Runtime Baseline
+
+Status: Complete.
+
+Implemented:
+
+- `FeedbackDeliveryAttemptData`
+- `FeedbackDeliveryAttemptRuntimeContract`
+- `FeedbackDeliveryAttemptRuntime`
+- delivery attempt runtime service-provider binding
+- execution of prepared delivery plan items through registered channel drivers
+- provider receipt handoff generation from delivery results
+- fail-closed unknown planned channel behavior before later plan items execute
+- default null-driver delivery attempt coverage
+
+Deferred:
+
+- no durable delivery records
+- no queues
+- no retry policy
+- no provider SDKs
+- no routes
+- no host package integration
+- no x-journal delivery receipt integration
+
 ## Next Recommended Phase
 
-Phase 6 — Delivery Attempt Runtime Baseline.
+Phase 7 — Delivery Recording Strategy Baseline.
 
 Recommended scope:
 
-- execute prepared delivery plan items through registered channel drivers
-- keep durable delivery records deferred unless explicitly authorized
-- preserve provider receipt handoff as portable output data
-- keep queues, retries, provider SDKs, routes, and host integrations deferred
+- define delivery record contracts and DTO boundaries
+- decide whether the first recording seam is in-memory, database-backed, or x-journal handoff only
+- keep real provider SDKs, queues, retries, routes, and host integrations deferred unless explicitly authorized
+- preserve receipt handoff as portable output data
