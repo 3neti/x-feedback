@@ -360,13 +360,15 @@ Deferred:
 
 ## Next Recommended Phase
 
-Phase 13 — Preference and Suppression Policy Baseline.
+Phase 14 — Notification Route Baseline.
 
 Recommended scope:
 
-- define recipient/channel preference DTOs
-- evaluate suppression, opt-out, quiet-hours, and required-channel policy
-- keep persistence, provider SDKs, queues, routes, and host integrations deferred unless explicitly authorized
+- add notification route DTOs
+- add route resolver contract and in-memory/config-backed resolver baseline
+- support route verification metadata and primary/fallback route ordering
+- compose routes with delivery planning without mutating recipients
+- keep database route book, contact package dependency, host route synchronization, provider delivery changes, lifecycle truth ownership, and routes deferred unless explicitly authorized
 
 ## Functional Specification Priority
 
@@ -391,7 +393,7 @@ The current package already covers the grammar, event mapper, intent, template, 
 
 ### Phase 13 — Preference and Suppression Policy Baseline
 
-Status: Next.
+Status: Complete.
 
 Functional specification coverage:
 
@@ -407,6 +409,24 @@ Recommended scope:
 - add evaluator contract and deterministic evaluator
 - evaluate channel enabled/disabled, opt-out, quiet hours, stale intent, and required-channel behavior
 - keep decisions advisory and side-effect free
+
+Implemented:
+
+- `FeedbackNotificationPreferenceData`
+- `FeedbackQuietHoursData`
+- `FeedbackSuppressionPolicyData`
+- `FeedbackSuppressionDecisionData`
+- `FeedbackSuppressionEvaluatorContract`
+- `FeedbackSuppressionEvaluator`
+- service-provider binding for `FeedbackSuppressionEvaluatorContract`
+- notification preference disabled-channel suppression
+- recipient opt-out channel suppression
+- disabled-channel suppression
+- quiet-hours suppression with timezone support
+- intent expiry suppression
+- stale intent suppression through `meta.created_at` and policy freshness window
+- required-channel advisory allow decisions without overriding hard disabled-channel suppression
+- tests proving the evaluator remains side-effect free and independent from persistence, routes, host packages, provider delivery, workflow execution, and journal truth
 
 Deferred:
 

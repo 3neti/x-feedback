@@ -15,7 +15,7 @@ It does not decide workflow meaning, execute actions, or own lifecycle truth.
 ## Current Phase
 
 Wave 3 — x-feedback  
-Phase 12 — Transport Driver Baseline  
+Phase 13 — Preference and Suppression Policy Baseline  
 Status: Complete  
 Last updated: 2026-06-30
 
@@ -163,6 +163,16 @@ Last updated: 2026-06-30
   - kept Spatie isolated behind the x-feedback webhook sender seam
   - kept webhook as an x-feedback channel from the outside
   - kept persistence, routes, host package integration, and x-journal persistence deferred
+- Completed Phase 13 Preference and Suppression Policy Baseline:
+  - added `FeedbackNotificationPreferenceData`
+  - added `FeedbackQuietHoursData`
+  - added `FeedbackSuppressionPolicyData`
+  - added `FeedbackSuppressionDecisionData`
+  - added `FeedbackSuppressionEvaluatorContract`
+  - added `FeedbackSuppressionEvaluator`
+  - added package-consumer binding for suppression evaluation
+  - evaluates disabled channels, recipient opt-outs, disabled notification preferences, quiet hours, expired intents, stale intents, and required-channel advisory decisions
+  - keeps preference and suppression evaluation deterministic, advisory, side-effect free, and independent from persistence, routes, provider delivery, host packages, workflow execution, and journal truth
 
 ## Discoveries
 
@@ -193,6 +203,7 @@ Last updated: 2026-06-30
 - Spatie Webhook Server is Laravel 13-compatible and can be used as the internal webhook transport implementation without leaking into the x-feedback channel API.
 - The remaining Wave 3 roadmap must be driven directly by `/Users/rli/PhpstormProjects/x-change-sandbox/docs/todo/x-feedback/x-feedback_functional_specifications.md`.
 - Functional specification coverage still has gaps after Phase 12: notification preferences, notification routes, feature-profile hardening, artifact rendering policy, durable delivery records, in-app notification state, operational monitoring, delivery console APIs, credential resolution, journal event handoff strengthening, and reusable UI components.
+- Phase 13 closes the first `NotificationPreference` baseline by adding advisory preference/suppression evaluation without persistence or route ownership.
 
 ## Risks
 
@@ -226,6 +237,8 @@ Last updated: 2026-06-30
 - The functional specification includes APIs and reusable UI components, but Cockpit remains responsible for pages. x-feedback UI work must stay component/read-model scoped.
 - Durable delivery records in x-feedback can blur with x-journal. x-feedback may own communication delivery state, while x-journal remains audit/system truth.
 - Credential resolution introduces secret-handling risk. Credentials must not leak into rendered messages, logs, delivery records, provider responses, or journal handoff payloads.
+- Suppression decisions are advisory pre-delivery facts. Hosts must not treat them as workflow authorization, claim status, settlement state, or audit truth.
+- Required-channel policy marks a channel as preferred/required for communication planning, but hard suppression gates such as disabled channels still fail closed.
 
 ## Architectural Decisions
 
@@ -289,6 +302,10 @@ Last updated: 2026-06-30
   - Phase 22 — Journal Event Emission / Handoff Integration
   - Phase 23 — UI Component Baseline
 - Delivery console APIs and UI components must expose communication facts only; they must not decide workflow actions, settlement state, campaign state, or audit truth.
+- Bind `FeedbackSuppressionEvaluatorContract` as the package-consumer seam for advisory preference and suppression decisions.
+- Keep suppression evaluation side-effect free; it returns decisions and never sends, queues, persists, retries, records journal entries, or mutates delivery state.
+- Treat disabled channels, opt-outs, disabled preferences, expiry, stale intents, and quiet hours as non-delivery gates before provider delivery.
+- Treat required-channel decisions as advisory allow decisions, not as overrides for hard disabled-channel suppression.
 
 ## Functional Specification Coverage Plan
 
@@ -312,30 +329,29 @@ Coverage already established or partially established:
 - retry/freshness decision baseline: Phase 10
 - channel driver architecture and health: Phase 11
 - concrete email/SMS/webhook transport baseline: Phase 12
+- notification preference and suppression baseline: Phase 13
 
 Remaining functional specification coverage should be implemented in this order:
 
-1. Phase 13 — Preference and Suppression Policy Baseline.
-   - Covers notification preferences, suppression, opt-out, quiet hours, required-channel behavior, and freshness-aware non-delivery gates.
-2. Phase 14 — Notification Route Baseline.
+1. Phase 14 — Notification Route Baseline.
    - Covers `NotificationRoute` and avoids hardcoded recipient channel fields.
-3. Phase 15 — Feature Profile and Template Policy Baseline.
+2. Phase 15 — Feature Profile and Template Policy Baseline.
    - Hardens feature-profile semantics as institutional experiences, not languages or workflow meaning.
-4. Phase 16 — Action and Artifact Rendering Policy Baseline.
+3. Phase 16 — Action and Artifact Rendering Policy Baseline.
    - Covers supplied action rendering and per-channel artifact rendering policies without owning CTA decisions or artifact storage.
-5. Phase 17 — Durable Delivery Records Baseline.
+4. Phase 17 — Durable Delivery Records Baseline.
    - Covers the delivery state machine, attempt counts, provider responses, receipt tracking, and idempotency strategy while keeping x-journal as audit truth.
-6. Phase 18 — In-App Notification Baseline.
+5. Phase 18 — In-App Notification Baseline.
    - Covers unread/read/archived/dismissed state and mark-read capabilities.
-7. Phase 19 — Operational Monitoring Baseline.
+6. Phase 19 — Operational Monitoring Baseline.
    - Covers channel health, delivery failures, and retry backlog visibility.
-8. Phase 20 — Delivery Console API Baseline.
+7. Phase 20 — Delivery Console API Baseline.
    - Covers delivery status, attempt history, provider responses, and retry action handoff APIs without Cockpit page ownership.
-9. Phase 21 — Credential Resolution Baseline.
+8. Phase 21 — Credential Resolution Baseline.
    - Covers tenant/institution/customer credential resolution for SMTP, SMS, webhook signing, and future channels.
-10. Phase 22 — Journal Event Emission / Handoff Integration.
+9. Phase 22 — Journal Event Emission / Handoff Integration.
     - Covers `feedback.created`, `feedback.sent`, `feedback.failed`, and `feedback.expired` handoff facts while x-journal remains system truth.
-11. Phase 23 — UI Component Baseline.
+10. Phase 23 — UI Component Baseline.
     - Covers reusable x-feedback UI components while Cockpit owns pages.
 
 ## Test Coverage Status
@@ -439,17 +455,30 @@ Current coverage:
 - transport baseline boundary safety
 - green focused Phase 12 suite: `9 passed, 50 assertions`
 - green x-feedback package suite: `91 passed, 485 assertions`
+- notification preference DTO modeling
+- suppression policy and quiet-hours DTO modeling
+- disabled preference suppression
+- recipient opt-out suppression
+- disabled channel suppression
+- quiet-hours suppression with timezone-aware windows
+- expired and stale intent suppression
+- required-channel advisory allow decisions without overriding hard disabled-channel gates
+- suppression evaluator package-consumer binding
+- preference/suppression boundary safety
+- green focused Phase 13 suite: `8 passed, 40 assertions`
+- green x-feedback package suite: `99 passed, 525 assertions`
 
 ## Next Recommended Phase
 
-Phase 13 — Preference and Suppression Policy Baseline.
+Phase 14 — Notification Route Baseline.
 
 Recommended scope:
 
-- define recipient/channel preference DTOs
-- evaluate suppression, opt-out, quiet-hours, and required-channel policy
-- keep decisions advisory and side-effect free
-- do not introduce persistence, routes, host policy coupling, lifecycle truth ownership, workflow execution, or journal truth mutation
+- add notification route DTOs
+- add route resolver contract and in-memory/config-backed resolver baseline
+- support route verification metadata and primary/fallback route ordering
+- compose routes with delivery planning without mutating recipients
+- do not introduce database route books, contact package dependency, host route synchronization, provider delivery changes, lifecycle truth ownership, workflow execution, or journal truth mutation unless explicitly authorized
 
 ## Open Questions
 
