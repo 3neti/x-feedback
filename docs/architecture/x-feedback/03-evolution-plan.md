@@ -123,13 +123,42 @@ Deferred:
 - no x-journal delivery receipt integration
 - no host package integration
 
+## Phase 5 — Delivery Dispatch Preparation and Receipt Handoff Baseline
+
+Status: Complete.
+
+Implemented:
+
+- `FeedbackDispatchPreparationData`
+- `FeedbackProviderReceiptData`
+- `FeedbackDispatchPreparerContract`
+- `FeedbackReceiptHandoffMapperContract`
+- `FeedbackDispatchPreparer`
+- `FeedbackReceiptHandoffMapper`
+- dispatch preparation service-provider binding
+- receipt handoff mapper service-provider binding
+- template resolution plus delivery planning composition
+- delivery-result to provider-receipt handoff mapping
+- dry dispatch preparation without provider delivery
+
+Deferred:
+
+- no real provider delivery
+- no persistence
+- no queues
+- no retry policy
+- no provider SDKs
+- no delivery receipt storage
+- no x-journal delivery receipt integration
+- no host package integration
+
 ## Next Recommended Phase
 
-Phase 5 — Delivery Dispatch Preparation and Receipt Handoff Baseline.
+Phase 6 — Delivery Attempt Runtime Baseline.
 
 Recommended scope:
 
-- compose template resolution and delivery planning into a dispatch-preparation seam
-- define provider receipt handoff DTOs without persistence
-- keep real provider delivery deferred
-- keep durable delivery records deferred
+- execute prepared delivery plan items through registered channel drivers
+- keep durable delivery records deferred unless explicitly authorized
+- preserve provider receipt handoff as portable output data
+- keep queues, retries, provider SDKs, routes, and host integrations deferred

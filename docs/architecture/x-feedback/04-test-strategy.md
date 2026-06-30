@@ -34,6 +34,12 @@ Phase 1 tests cover:
 - proof that delivery planning does not resolve provider/channel drivers
 - selector and planner package-consumer bindings
 - delivery planning independence from provider delivery, persistence, routes, and host packages
+- dispatch preparation composition of template resolution and delivery planning
+- proof that dispatch preparation does not dispatch provider delivery
+- provider receipt handoff DTO modeling
+- delivery-result to provider-receipt handoff mapping
+- dispatch preparation and receipt handoff package-consumer bindings
+- dispatch preparation independence from provider delivery, persistence, routes, and host packages
 
 ## Required Future Coverage
 
@@ -42,6 +48,7 @@ Future phases should add tests for:
 - domain event mapping
 - template resolution
 - channel driver delivery dispatch preparation
+- delivery attempt runtime
 - delivery persistence
 - retry policy
 - expiration/freshness policy

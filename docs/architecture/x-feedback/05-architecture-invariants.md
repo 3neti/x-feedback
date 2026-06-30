@@ -90,6 +90,31 @@ It must not:
 
 Channel driver resolution remains a dispatch concern.
 
+## Dispatch Preparation Is Not Dispatch
+
+Dispatch preparation composes resolved message content with delivery planning.
+
+It must not:
+
+- invoke channel drivers
+- call provider SDKs
+- persist delivery records
+- queue jobs
+- count messages as sent
+- mutate the original feedback intent
+
+## Receipt Handoff Is Not Storage
+
+Provider receipt handoff data represents delivery-result facts for later consumers.
+
+It must not:
+
+- become the canonical audit log
+- persist provider responses by itself
+- decide reconciliation outcomes
+- decide workflow state
+- expose raw provider payloads without host-level redaction
+
 ## Communication Is Not Execution
 
 x-feedback must not:
