@@ -28,6 +28,23 @@ Driver `supports` checks are capability signals only. They are not authorization
 
 Baseline channel drivers must not perform real transport side effects unless a future provider-delivery slice explicitly authorizes that behavior.
 
+## Transport Drivers Are Still Channels
+
+Email, SMS, and webhook transport behavior must remain behind `FeedbackChannelDriverContract`.
+
+Webhook delivery must flow through `FeedbackWebhookSenderContract`.
+
+Spatie Webhook Server is an implementation detail of `SpatieFeedbackWebhookSender`, not a package-wide dependency boundary.
+
+Transport dispatch must not be treated as:
+
+- delivery confirmation
+- beneficiary receipt
+- workflow completion
+- settlement truth
+- journal truth
+- provider callback verification
+
 ## Delivery State Is Explicit
 
 Delivery state must use explicit status values such as:

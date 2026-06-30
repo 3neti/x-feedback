@@ -317,29 +317,52 @@ Deferred:
 - no durable persistence
 - no host package integration
 
-## Next Recommended Phase
+## Phase 12 — Transport Driver Baseline
 
-Phase 12 — Transport Driver Baseline.
+Status: Complete.
 
-Recommended scope:
+Implemented:
 
-- create first-class transport drivers:
+- created first-class transport drivers:
   - `email`
   - `sms`
   - `webhook`
-- decide whether `mail` remains as an alias/compatibility key for `email`
-- keep the drivers test-first and behind `FeedbackChannelDriverContract`
-- define provider/client seams for SMS and webhook without hardcoding provider SDKs
-- explicitly decide whether to add `spatie/laravel-webhook-server`; it is not currently installed in `composer.json`
-- if dependency approval is not granted, scaffold the webhook driver behind an internal sender contract and keep real outbound webhook delivery deferred
-- preserve fail-closed unknown-driver behavior
-- keep durable persistence, queues, routes, and host integrations deferred unless explicitly authorized
+- added `FeedbackEmailMessage`
+- added `EmailFeedbackChannelDriver` using Laravel Mail
+- added `SmsFeedbackChannelDriver` using `lbhurtado/sms`
+- added `FeedbackWebhookMessageData`
+- added `FeedbackWebhookSendResultData`
+- added `FeedbackWebhookSenderContract`
+- added `SpatieFeedbackWebhookSender`
+- changed `WebhookFeedbackChannelDriver` to call the x-feedback webhook sender seam instead of calling Spatie directly
+- wrapped `spatie/laravel-webhook-server` behind the default webhook sender implementation
+- added test coverage for email delivery through Laravel Mail
+- added test coverage for SMS delivery through `LBHurtado\SMS\Facades\SMS`
+- added test coverage proving webhook driver depends on the internal sender seam
+- added test coverage proving the default webhook sender wraps Spatie Webhook Server
 
-## Deferred Phase
+Decisions:
+
+- `mail` remains the safe Phase 11 compatibility/baseline channel key.
+- `email` is the explicit Phase 12 transport channel key.
+- `sms` uses `lbhurtado/sms:^2.4.2`.
+- `webhook` remains an x-feedback channel from the outside.
+- Spatie Webhook Server is an internal implementation detail behind `FeedbackWebhookSenderContract`.
+
+Deferred:
+
+- no delivery persistence
+- no webhook routes
+- no host package integration
+- no durable retry scheduling
+- no provider callback idempotency
+- no x-journal persistence
+
+## Next Recommended Phase
 
 Phase 13 — Preference and Suppression Policy Baseline.
 
-Recommended scope after Phase 12:
+Recommended scope:
 
 - define recipient/channel preference DTOs
 - evaluate suppression, opt-out, quiet-hours, and required-channel policy

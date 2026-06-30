@@ -77,6 +77,13 @@ Phase 1 tests cover:
 - baseline driver supports/capability checks
 - proof that baseline driver sends remain package-local handoff facts without provider side effects
 - channel driver architecture independence from provider SDKs, persistence, queues, routes, and host packages
+- explicit `email`, `sms`, and `webhook` transport driver resolution
+- email delivery through Laravel Mail
+- SMS delivery through `LBHurtado\SMS\Facades\SMS`
+- webhook delivery through `FeedbackWebhookSenderContract`
+- default webhook sender wrapper around Spatie Webhook Server
+- transport support requirements for email, SMS, and webhook
+- transport baseline independence from persistence, routes, and host packages
 
 ## Required Future Coverage
 
@@ -84,7 +91,7 @@ Future phases should add tests for:
 
 - domain event mapping
 - template resolution
-- real channel driver delivery dispatch
+- transport failure handling
 - delivery persistence
 - expiration/freshness policy
 - preference and suppression policy

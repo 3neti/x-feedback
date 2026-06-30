@@ -15,7 +15,7 @@ It does not decide workflow meaning, execute actions, or own lifecycle truth.
 ## Current Phase
 
 Wave 3 — x-feedback  
-Phase 11 — Channel Driver Architecture Backfill  
+Phase 12 — Transport Driver Baseline  
 Status: Complete  
 Last updated: 2026-06-30
 
@@ -148,6 +148,21 @@ Last updated: 2026-06-30
   - preserved unknown-driver fail-closed behavior
   - kept baseline sends as package-local handoff facts without provider side effects
   - kept provider SDKs, outbound webhook calls, SMTP assumptions, queues, routes, persistence, and host coupling deferred
+- Completed Phase 12 Transport Driver Baseline:
+  - added `EmailFeedbackChannelDriver`
+  - added `SmsFeedbackChannelDriver`
+  - added `FeedbackEmailMessage`
+  - added `FeedbackWebhookMessageData`
+  - added `FeedbackWebhookSendResultData`
+  - added `FeedbackWebhookSenderContract`
+  - added `SpatieFeedbackWebhookSender`
+  - registered explicit `email`, `sms`, and `webhook` transport channels
+  - added `illuminate/mail`
+  - added `lbhurtado/sms:^2.4.2`
+  - added `spatie/laravel-webhook-server:^3.10`
+  - kept Spatie isolated behind the x-feedback webhook sender seam
+  - kept webhook as an x-feedback channel from the outside
+  - kept persistence, routes, host package integration, and x-journal persistence deferred
 
 ## Discoveries
 
@@ -173,8 +188,9 @@ Last updated: 2026-06-30
 - The current package roadmap intentionally kept real delivery provider behavior deferred, but it should still backfill safe baseline drivers before moving to preference and suppression policy.
 - Phase 11 can satisfy the original driver-architecture baseline without making `mail` or `webhook` perform real provider delivery.
 - Driver `supports` checks are capability signals only; they are not delivery authorization or lifecycle truth.
-- `spatie/laravel-webhook-server` is not currently installed in `x-feedback`; webhook transport must either use an internal seam first or receive explicit dependency approval before adding the package.
-- The next slice should create explicit `email`, `sms`, and `webhook` transport drivers before moving to preference/suppression policy.
+- `lbhurtado/sms v2.4.2` declares Laravel 13 support and matches the SMS facade chain used in `/Users/rli/PhpstormProjects/txtcmdr`.
+- `laravel-notification-channels/webhook` currently does not declare Laravel 13 support, so Phase 12 uses an x-feedback-owned webhook sender seam instead.
+- Spatie Webhook Server is Laravel 13-compatible and can be used as the internal webhook transport implementation without leaking into the x-feedback channel API.
 
 ## Risks
 
@@ -202,8 +218,9 @@ Last updated: 2026-06-30
 - Backoff policy must be aligned with provider rate limits before production delivery providers are introduced.
 - Driver architecture drift creates confusion if higher-level policy slices assume concrete channels exist. Close the safe driver baseline before adding recipient preference and suppression policy.
 - Adding `mail` or `webhook` drivers can accidentally introduce real provider delivery. The backfill must keep these as framework seams or no-real-provider baselines unless explicitly authorized.
-- Baseline `mail` and `webhook` drivers currently return handoff facts only. Hosts must not assume SMTP, HTTP, provider acceptance, or delivery confirmation occurred.
-- Introducing real `email`, `sms`, or `webhook` drivers can pull in provider dependencies and transport side effects. Dependency and side-effect boundaries must be explicit before implementation.
+- Phase 12 introduces real transport side effects for `email`, `sms`, and queued webhook dispatch. Hosts must not treat successful dispatch as beneficiary receipt, provider confirmation, settlement truth, or workflow completion.
+- Spatie webhook dispatch is queued transport infrastructure. It is not webhook callback handling, provider callback verification, delivery persistence, or audit truth.
+- SMS delivery depends on host/provider configuration for `lbhurtado/sms`; missing provider credentials will surface at transport time.
 
 ## Architectural Decisions
 
@@ -248,8 +265,10 @@ Last updated: 2026-06-30
 - Use `FeedbackChannelHealthData` for driver health checks.
 - Keep baseline channel drivers side-effect free unless a future provider-delivery slice explicitly authorizes real transport behavior.
 - Treat `supports` as driver capability filtering, not business authorization.
-- Phase 12 should create explicit `email`, `sms`, and `webhook` transport drivers before preference/suppression policy.
-- Do not add `spatie/laravel-webhook-server` or any SMS provider SDK without explicit approval.
+- Phase 12 creates explicit `email`, `sms`, and `webhook` transport drivers before preference/suppression policy.
+- Keep `WebhookFeedbackChannelDriver` dependent on `FeedbackWebhookSenderContract`, not directly on Spatie.
+- Use `SpatieFeedbackWebhookSender` as the default implementation of `FeedbackWebhookSenderContract`.
+- Keep `mail` as the Phase 11 compatibility/baseline key and use `email` as the explicit transport key.
 
 ## Test Coverage Status
 
@@ -343,24 +362,22 @@ Current coverage:
 - channel driver architecture boundary safety
 - green focused Phase 11 suite: `18 passed, 86 assertions`
 - green x-feedback package suite: `83 passed, 443 assertions`
+- explicit `email`, `sms`, and `webhook` transport driver resolution
+- email delivery through Laravel Mail
+- SMS delivery through `LBHurtado\SMS\Facades\SMS`
+- webhook delivery through `FeedbackWebhookSenderContract`
+- default webhook sender wrapper around Spatie Webhook Server
+- transport capability/support requirements
+- transport baseline boundary safety
+- green focused Phase 12 suite: `9 passed, 50 assertions`
+- green x-feedback package suite: `91 passed, 485 assertions`
 
 ## Next Recommended Phase
 
-Phase 12 — Transport Driver Baseline.
+Phase 13 — Preference and Suppression Policy Baseline.
 
 Recommended scope:
 
-- create explicit `email`, `sms`, and `webhook` drivers
-- decide whether `mail` remains an alias/compatibility key for `email`
-- keep drivers behind `FeedbackChannelDriverContract`
-- define SMS and webhook sender seams without hardcoding provider SDKs
-- explicitly decide whether to add `spatie/laravel-webhook-server`; it is absent from current `composer.json`
-- preserve fail-closed unknown-driver behavior
-- keep durable persistence, queues, routes, and host integrations deferred unless explicitly authorized
-
-Deferred after Phase 12:
-
-- Phase 13 — Preference and Suppression Policy Baseline
 - define recipient/channel preference DTOs
 - evaluate suppression, opt-out, quiet-hours, and required-channel policy
 - keep persistence, provider SDKs, queues, routes, and host integrations deferred unless explicitly authorized
@@ -369,11 +386,10 @@ Deferred after Phase 12:
 
 - Which host event should be the first live mapper: claim succeeded, claim failed, disbursement failed, or operator alert?
 - Should durable delivery records belong directly in x-feedback or wait for x-journal receipt integration?
-- Which real transport channel should be implemented first beyond safe baseline handoff behavior after the explicit `email`, `sms`, and `webhook` driver skeletons exist?
+- Which transport channel needs production hardening first: email, SMS, or webhook?
 - Should hosts be allowed to plan unregistered channel keys for future drivers, or should planning become fail-closed once real providers are introduced?
 - Should delivery records eventually be persisted directly in x-feedback, or should durable history live only in x-journal?
 - Which provider callback shape should become the first host adapter: SMS delivery receipt, email bounce, webhook acknowledgement, or operator alert callback?
 - Should provider callback idempotency belong in x-feedback delivery records, x-journal, or host adapters?
 - Should retry/freshness decisions eventually be recorded in x-feedback, x-journal, or only host orchestration state?
-- When a future provider-delivery slice is authorized, should baseline `mail` and `webhook` become true sending seams through Laravel Mail / HTTP, or should separate provider-specific drivers be introduced?
-- Should Phase 12 add `spatie/laravel-webhook-server`, or should webhook delivery start with an internal sender contract and defer the dependency?
+- Should durable delivery records live directly in x-feedback or only as x-journal facts after receipt handoff?

@@ -31,8 +31,11 @@
     },
     "require": {
         "php": "^8.2",
+        "illuminate/mail": "^12.0||^13.0",
         "illuminate/support": "^12.0 || ^13.0",
-        "spatie/laravel-data": "^4.0"
+        "lbhurtado/sms": "^2.4.2",
+        "spatie/laravel-data": "^4.0",
+        "spatie/laravel-webhook-server": "^3.10"
     },
     "require-dev": {
         "orchestra/testbench": "^10.0",

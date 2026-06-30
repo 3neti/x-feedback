@@ -28,7 +28,7 @@ it('resolves the baseline channel drivers from the package registry', function (
 ]);
 
 it('fails closed for unknown channel drivers', function () {
-    app(FeedbackChannelRegistryContract::class)->driver('sms');
+    app(FeedbackChannelRegistryContract::class)->driver('imaginary');
 })->throws(UnknownFeedbackChannelException::class);
 
 it('exposes health checks for all baseline drivers', function (string $channel) {
@@ -78,7 +78,6 @@ it('keeps baseline driver sends as package-local handoff facts without provider 
     'log' => ['log', new FeedbackRecipientData(type: 'claimant', id: 'user-1'), new FeedbackChannelData(key: 'log'), FeedbackDeliveryData::StatusQueued],
     'in_app' => ['in_app', new FeedbackRecipientData(type: 'claimant', id: 'user-1'), new FeedbackChannelData(key: 'in_app'), FeedbackDeliveryData::StatusQueued],
     'mail' => ['mail', new FeedbackRecipientData(type: 'claimant', id: 'user-1', email: 'user@example.test'), new FeedbackChannelData(key: 'mail'), FeedbackDeliveryData::StatusQueued],
-    'webhook' => ['webhook', new FeedbackRecipientData(type: 'system', id: 'system'), new FeedbackChannelData(key: 'webhook', options: ['url' => 'https://example.test/feedback']), FeedbackDeliveryData::StatusQueued],
 ]);
 
 it('keeps channel driver architecture independent from provider sdks persistence queues routes and host packages', function () {

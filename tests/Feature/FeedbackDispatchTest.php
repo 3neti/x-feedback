@@ -36,7 +36,7 @@ it('dispatches feedback intents through registered channel drivers', function ()
 
 it('fails closed for unknown feedback channels before dispatching delivery', function () {
     app(FeedbackDispatcherContract::class)->dispatch(feedbackIntent(channels: [
-        new FeedbackChannelData(key: 'sms'),
+        new FeedbackChannelData(key: 'imaginary'),
     ]));
 })->throws(UnknownFeedbackChannelException::class);
 
@@ -78,4 +78,3 @@ function feedbackIntent(array $recipients = [], array $channels = []): FeedbackI
         subjectId: 'claim-1',
     );
 }
-
