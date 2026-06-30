@@ -4,12 +4,16 @@ namespace LBHurtado\XFeedback;
 
 use Illuminate\Support\ServiceProvider;
 use LBHurtado\XFeedback\Contracts\FeedbackChannelRegistryContract;
+use LBHurtado\XFeedback\Contracts\FeedbackChannelSelectorContract;
 use LBHurtado\XFeedback\Contracts\FeedbackCredentialResolverContract;
+use LBHurtado\XFeedback\Contracts\FeedbackDeliveryPlannerContract;
 use LBHurtado\XFeedback\Contracts\FeedbackDispatcherContract;
 use LBHurtado\XFeedback\Contracts\FeedbackEventMapperRegistryContract;
 use LBHurtado\XFeedback\Contracts\FeedbackTemplateRegistryContract;
 use LBHurtado\XFeedback\Contracts\FeedbackTemplateResolverContract;
 use LBHurtado\XFeedback\Services\FeedbackChannelRegistry;
+use LBHurtado\XFeedback\Services\FeedbackChannelSelector;
+use LBHurtado\XFeedback\Services\FeedbackDeliveryPlanner;
 use LBHurtado\XFeedback\Services\FeedbackDispatcher;
 use LBHurtado\XFeedback\Services\FeedbackEventMapperRegistry;
 use LBHurtado\XFeedback\Services\FeedbackTemplateRegistry;
@@ -34,6 +38,8 @@ final class XFeedbackServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(FeedbackTemplateResolverContract::class, FeedbackTemplateResolver::class);
+        $this->app->singleton(FeedbackChannelSelectorContract::class, FeedbackChannelSelector::class);
+        $this->app->singleton(FeedbackDeliveryPlannerContract::class, FeedbackDeliveryPlanner::class);
         $this->app->singleton(FeedbackCredentialResolverContract::class, NullFeedbackCredentialResolver::class);
         $this->app->singleton(FeedbackDispatcherContract::class, FeedbackDispatcher::class);
         $this->app->singleton(FeedbackEventMapperRegistryContract::class, function ($app): FeedbackEventMapperRegistry {

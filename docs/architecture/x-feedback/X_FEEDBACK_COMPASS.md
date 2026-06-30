@@ -15,7 +15,7 @@ It does not decide workflow meaning, execute actions, or own lifecycle truth.
 ## Current Phase
 
 Wave 3 — x-feedback  
-Phase 3 — Template Resolution Baseline  
+Phase 4 — Channel Driver Selection and Delivery Planning Baseline  
 Status: Complete  
 Last updated: 2026-06-30
 
@@ -71,6 +71,18 @@ Last updated: 2026-06-30
   - renders placeholders from template defaults and intent variables
   - preserves intent immutability during template resolution
   - keeps template resolution independent from provider delivery, persistence, routes, and host packages
+- Completed Phase 4 Channel Driver Selection and Delivery Planning Baseline:
+  - added `FeedbackChannelSelectionPolicyData`
+  - added `FeedbackDeliveryPlanData`
+  - added `FeedbackDeliveryPlanItemData`
+  - added `FeedbackChannelSelectorContract`
+  - added `FeedbackDeliveryPlannerContract`
+  - added `FeedbackChannelSelector`
+  - added `FeedbackDeliveryPlanner`
+  - added package-consumer bindings for selector and planner contracts
+  - supports allowed, required, preferred, fallback, disabled, and enabled-channel filtering
+  - produces recipient/channel delivery plans without resolving channel drivers
+  - keeps delivery planning independent from provider delivery, persistence, routes, and host packages
 
 ## Discoveries
 
@@ -79,6 +91,7 @@ Last updated: 2026-06-30
 - Phase 1 can be implemented without touching x-change, x-action, x-journal, or any provider package.
 - Phase 2 can translate generic event facts into feedback intents without adding real delivery or host package dependencies.
 - Phase 3 can render message content without invoking channel drivers or provider delivery.
+- Phase 4 can create dry delivery plans without touching the channel driver registry; driver resolution remains a dispatch concern.
 
 ## Risks
 
@@ -90,6 +103,8 @@ Last updated: 2026-06-30
 - Unknown event mappings fail closed, which is safe but requires host packages to register mappers explicitly.
 - Template resolution can expose sensitive variables in rendered content; future host-facing surfaces need redaction and preview rules.
 - Repeated template resolution does not imply delivery and must not be treated as a delivery attempt.
+- Delivery plans are not durable delivery records. Hosts must not treat a generated plan as a sent, queued, or persisted notification.
+- Channel selection policy is routing preparation only; it is not lifecycle truth, authorization, or provider capability validation.
 
 ## Architectural Decisions
 
@@ -104,6 +119,10 @@ Last updated: 2026-06-30
 - Bind `FeedbackTemplateRegistryContract` as the package-consumer seam for template registration.
 - Bind `FeedbackTemplateResolverContract` to the template-aware resolver by default.
 - Keep template resolution side-effect free and non-persistent.
+- Bind `FeedbackChannelSelectorContract` as the deterministic channel filtering and ordering seam.
+- Bind `FeedbackDeliveryPlannerContract` as the dry-run delivery planning seam.
+- Keep driver resolution inside delivery dispatch; planning may reference unregistered future channel keys without provider side effects.
+- Keep delivery planning side-effect free and non-persistent.
 
 ## Test Coverage Status
 
@@ -132,20 +151,29 @@ Current coverage:
 - template resolver immutability
 - template resolution boundary safety
 - green x-feedback package suite: `22 passed, 99 assertions`
+- channel selection policy modeling
+- enabled/allowed/disabled/required/preferred/fallback channel selection
+- delivery plan item generation per recipient and selected channel
+- proof that delivery planning does not resolve provider/channel drivers
+- selector and planner package-consumer bindings
+- delivery planning boundary safety
+- green focused Phase 4 suite: `7 passed, 37 assertions`
+- green x-feedback package suite: `29 passed, 136 assertions`
 
 ## Next Recommended Phase
 
-Phase 4 — Channel Driver Selection and Delivery Planning Baseline.
+Phase 5 — Delivery Dispatch Preparation and Receipt Handoff Baseline.
 
 Recommended scope:
 
-- channel selection policy DTOs/contracts
-- delivery plan DTOs
-- no real channel/provider delivery
-- no persistence
+- compose template resolution and delivery planning into a dispatch-preparation seam
+- define provider receipt handoff DTOs without persistence
+- keep real provider delivery deferred
+- keep durable delivery records deferred
 
 ## Open Questions
 
 - Which host event should be the first live mapper: claim succeeded, claim failed, disbursement failed, or operator alert?
-- Should durable delivery records belong directly in x-feedback Phase 3 or wait for x-journal receipt integration?
+- Should durable delivery records belong directly in x-feedback or wait for x-journal receipt integration?
 - Which real channel should be implemented first: email, SMS, webhook, or in-app?
+- Should hosts be allowed to plan unregistered channel keys for future drivers, or should planning become fail-closed once real providers are introduced?

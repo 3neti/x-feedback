@@ -28,6 +28,12 @@ Phase 1 tests cover:
 - proof that resolving an intent does not mutate the original intent
 - template registry and resolver bindings
 - template resolution independence from provider delivery, persistence, routes, and host packages
+- channel selection policy modeling
+- enabled/allowed/disabled/required/preferred/fallback channel selection
+- delivery plan item generation per recipient and selected channel
+- proof that delivery planning does not resolve provider/channel drivers
+- selector and planner package-consumer bindings
+- delivery planning independence from provider delivery, persistence, routes, and host packages
 
 ## Required Future Coverage
 
@@ -35,7 +41,7 @@ Future phases should add tests for:
 
 - domain event mapping
 - template resolution
-- channel driver selection
+- channel driver delivery dispatch preparation
 - delivery persistence
 - retry policy
 - expiration/freshness policy

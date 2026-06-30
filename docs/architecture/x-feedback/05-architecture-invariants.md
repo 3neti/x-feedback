@@ -75,6 +75,21 @@ It must not:
 
 Unknown templates must fail closed before provider delivery.
 
+## Delivery Planning Is Not Delivery
+
+Delivery planning prepares the intended recipient/channel matrix.
+
+It must not:
+
+- invoke channel drivers
+- call provider SDKs
+- persist delivery records
+- queue jobs
+- decide lifecycle truth
+- prove that a notification was sent
+
+Channel driver resolution remains a dispatch concern.
+
 ## Communication Is Not Execution
 
 x-feedback must not:

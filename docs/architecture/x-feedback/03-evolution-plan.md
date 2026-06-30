@@ -92,13 +92,44 @@ Deferred:
 - template approval workflow
 - provider-specific rendering
 
+## Phase 4 — Channel Driver Selection and Delivery Planning Baseline
+
+Status: Complete.
+
+Implemented:
+
+- `FeedbackChannelSelectionPolicyData`
+- `FeedbackDeliveryPlanData`
+- `FeedbackDeliveryPlanItemData`
+- `FeedbackChannelSelectorContract`
+- `FeedbackDeliveryPlannerContract`
+- `FeedbackChannelSelector`
+- `FeedbackDeliveryPlanner`
+- selector and planner service-provider bindings
+- enabled-channel filtering
+- allowed-channel filtering
+- disabled-channel filtering
+- required/preferred/fallback ordering
+- recipient/channel delivery plan generation
+- dry planning without channel driver resolution
+
+Deferred:
+
+- no real provider delivery
+- no persistence
+- no queues
+- no retry policy
+- no provider capability validation
+- no x-journal delivery receipt integration
+- no host package integration
+
 ## Next Recommended Phase
 
-Phase 4 — Channel Driver Selection and Delivery Planning Baseline.
+Phase 5 — Delivery Dispatch Preparation and Receipt Handoff Baseline.
 
 Recommended scope:
 
-- channel selection policy DTOs/contracts
-- delivery plan DTOs
-- no real provider delivery
-- no persistence
+- compose template resolution and delivery planning into a dispatch-preparation seam
+- define provider receipt handoff DTOs without persistence
+- keep real provider delivery deferred
+- keep durable delivery records deferred
