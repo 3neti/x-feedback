@@ -227,12 +227,37 @@ Deferred:
 - no provider SDKs
 - no host package integration
 
+## Phase 9 — Provider Callback Feedback Mapping Baseline
+
+Status: Complete.
+
+Implemented:
+
+- `FeedbackProviderCallbackData`
+- `FeedbackProviderCallbackMapperContract`
+- `FeedbackProviderCallbackMapper`
+- provider callback mapper service-provider binding
+- provider callback to provider receipt mapping
+- provider callback to feedback event mapping
+- provider callback status normalization
+- callback mapping without webhook routes or provider SDKs
+
+Deferred:
+
+- no webhook routes
+- no provider SDKs
+- no database persistence
+- no queues
+- no retry policy
+- no callback idempotency
+- no host package integration
+
 ## Next Recommended Phase
 
-Phase 9 — Provider Callback Feedback Mapping Baseline.
+Phase 10 — Retry and Freshness Policy Baseline.
 
 Recommended scope:
 
-- define provider callback feedback DTOs
-- map provider callback facts into feedback receipts and/or feedback events
+- define retry/freshness policy DTOs and evaluators
+- classify retryable/final/expired delivery facts without queueing retries
 - keep real provider SDKs, webhook routes, persistence, queues, and host integrations deferred unless explicitly authorized

@@ -158,6 +158,21 @@ It must not:
 
 x-feedback should be journal-ready, not journal-dependent.
 
+## Provider Callback Mapping Is Not Webhook Handling
+
+Provider callback mapping normalizes facts supplied by a host/provider adapter.
+
+It must not:
+
+- register webhook routes
+- verify provider signatures
+- call provider SDKs
+- persist callback payloads
+- decide settlement, reconciliation, or claim lifecycle truth
+- execute retries
+
+Provider status values are communication facts only.
+
 ## Communication Is Not Execution
 
 x-feedback must not:

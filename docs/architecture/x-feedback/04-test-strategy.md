@@ -58,6 +58,12 @@ Phase 1 tests cover:
 - batch delivery record handoff mapping
 - journal receipt mapper package-consumer binding
 - journal receipt handoff independence from x-journal dependency, persistence, routes, jobs, and host packages
+- provider callback DTO modeling
+- provider callback to provider receipt mapping
+- provider callback to feedback event mapping
+- provider callback status normalization
+- provider callback mapper package-consumer binding
+- provider callback mapping independence from webhook routes, provider SDKs, persistence, queues, and host packages
 
 ## Required Future Coverage
 
@@ -69,7 +75,7 @@ Future phases should add tests for:
 - delivery persistence
 - retry policy
 - expiration/freshness policy
-- provider callbacks
+- provider callback idempotency strategy
 - x-action CTA payload rendering
 - x-journal receipt handoff
 - host integration boundaries

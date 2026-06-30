@@ -15,7 +15,7 @@ It does not decide workflow meaning, execute actions, or own lifecycle truth.
 ## Current Phase
 
 Wave 3 — x-feedback  
-Phase 8 — Journal Receipt Handoff Baseline  
+Phase 9 — Provider Callback Feedback Mapping Baseline  
 Status: Complete  
 Last updated: 2026-06-30
 
@@ -121,6 +121,15 @@ Last updated: 2026-06-30
   - maps provider receipts into x-journal-ready feedback receipt facts
   - supports batch mapping from delivery records
   - keeps x-journal dependency, persistence, routes, jobs, and host integrations deferred
+- Completed Phase 9 Provider Callback Feedback Mapping Baseline:
+  - added `FeedbackProviderCallbackData`
+  - added `FeedbackProviderCallbackMapperContract`
+  - added `FeedbackProviderCallbackMapper`
+  - added package-consumer binding for provider callback mapping
+  - maps provider callback facts into `FeedbackProviderReceiptData`
+  - maps provider callback facts into `FeedbackEventData`
+  - normalizes provider callback statuses into delivery statuses
+  - keeps webhook routes, provider SDKs, persistence, queues, and host integrations deferred
 
 ## Discoveries
 
@@ -138,6 +147,8 @@ Last updated: 2026-06-30
 - The first recording strategy is intentionally in-memory and non-durable; x-journal handoff remains a later integration slice.
 - Phase 8 can produce journal-ready facts without importing or depending on x-journal.
 - Journal-ready feedback payloads should be treated as handoff data, not persisted journal entries.
+- Phase 9 can normalize provider callback facts without owning provider lifecycle truth.
+- Callback mapping can feed existing receipt and event seams without introducing HTTP routes or provider SDKs.
 
 ## Risks
 
@@ -159,6 +170,8 @@ Last updated: 2026-06-30
 - Delivery records in x-feedback must not compete with x-journal as canonical audit truth.
 - Journal receipt handoff payloads can carry provider and recipient details. Host integrations must apply redaction before broad operator exposure.
 - x-feedback must not call x-journal directly unless a later explicit integration slice authorizes a dependency or adapter.
+- Provider callbacks may be duplicated by provider retries. Idempotency is not solved in Phase 9.
+- Provider-supplied statuses are communication facts only and must not be treated as settlement, reconciliation, or claim lifecycle truth.
 
 ## Architectural Decisions
 
@@ -191,6 +204,9 @@ Last updated: 2026-06-30
 - Bind `FeedbackJournalReceiptMapperContract` as the package-consumer seam for x-journal-ready receipt facts.
 - Treat `FeedbackJournalReceiptData` as a portable handoff payload, not a durable journal entry.
 - Keep x-feedback journal-ready but not journal-dependent.
+- Bind `FeedbackProviderCallbackMapperContract` as the package-consumer seam for callback fact normalization.
+- Map callbacks into existing receipt and event DTOs instead of adding webhook controllers or provider-specific SDK code.
+- Keep provider callback mapping non-persistent and side-effect free.
 
 ## Test Coverage Status
 
@@ -259,15 +275,23 @@ Current coverage:
 - journal handoff boundary safety
 - green focused Phase 8 suite: `6 passed, 41 assertions`
 - green x-feedback package suite: `52 passed, 280 assertions`
+- provider callback DTO modeling
+- provider callback to provider receipt mapping
+- provider callback to feedback event mapping
+- provider callback status normalization
+- provider callback mapper package-consumer binding
+- provider callback mapping boundary safety
+- green focused Phase 9 suite: `6 passed, 44 assertions`
+- green x-feedback package suite: `58 passed, 324 assertions`
 
 ## Next Recommended Phase
 
-Phase 9 — Provider Callback Feedback Mapping Baseline.
+Phase 10 — Retry and Freshness Policy Baseline.
 
 Recommended scope:
 
-- define provider callback feedback DTOs
-- map provider callback facts into feedback receipts and/or feedback events
+- define retry/freshness policy DTOs and evaluators
+- classify retryable/final/expired delivery facts without queueing retries
 - keep real provider SDKs, webhook routes, persistence, queues, and host integrations deferred unless explicitly authorized
 
 ## Open Questions
@@ -278,3 +302,4 @@ Recommended scope:
 - Should hosts be allowed to plan unregistered channel keys for future drivers, or should planning become fail-closed once real providers are introduced?
 - Should delivery records eventually be persisted directly in x-feedback, or should durable history live only in x-journal?
 - Which provider callback shape should become the first host adapter: SMS delivery receipt, email bounce, webhook acknowledgement, or operator alert callback?
+- Should provider callback idempotency belong in x-feedback delivery records, x-journal, or host adapters?
