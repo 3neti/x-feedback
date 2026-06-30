@@ -5,6 +5,7 @@ use LBHurtado\XFeedback\Contracts\FeedbackChannelRegistryContract;
 use LBHurtado\XFeedback\Contracts\FeedbackDeliveryAttemptRuntimeContract;
 use LBHurtado\XFeedback\Contracts\FeedbackDispatchPreparerContract;
 use LBHurtado\XFeedback\Data\FeedbackChannelData;
+use LBHurtado\XFeedback\Data\FeedbackChannelHealthData;
 use LBHurtado\XFeedback\Data\FeedbackDeliveryAttemptData;
 use LBHurtado\XFeedback\Data\FeedbackDeliveryData;
 use LBHurtado\XFeedback\Data\FeedbackIntentData;
@@ -130,6 +131,23 @@ final class RecordingFeedbackChannelDriver implements FeedbackChannelDriverContr
             correlation_id: $intent->context?->correlation_id,
             causation_id: $intent->context?->causation_id,
             meta: ['runtime_test' => true],
+        );
+    }
+
+    public function supports(
+        FeedbackIntentData $intent,
+        FeedbackRecipientData $recipient,
+        FeedbackChannelData $channel,
+    ): bool {
+        return $channel->key === 'test';
+    }
+
+    public function health(): FeedbackChannelHealthData
+    {
+        return new FeedbackChannelHealthData(
+            channel: 'test',
+            healthy: true,
+            status: FeedbackChannelHealthData::StatusAvailable,
         );
     }
 }

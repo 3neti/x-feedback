@@ -18,6 +18,16 @@ Every delivery channel must be represented through `FeedbackChannelDriverContrac
 
 Channel-specific logic must not leak into workflows.
 
+Drivers must expose:
+
+- `send`
+- `supports`
+- `health`
+
+Driver `supports` checks are capability signals only. They are not authorization, lifecycle truth, provider acceptance, or delivery confirmation.
+
+Baseline channel drivers must not perform real transport side effects unless a future provider-delivery slice explicitly authorizes that behavior.
+
 ## Delivery State Is Explicit
 
 Delivery state must use explicit status values such as:

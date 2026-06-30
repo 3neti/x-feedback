@@ -3,6 +3,7 @@
 namespace LBHurtado\XFeedback\Contracts;
 
 use LBHurtado\XFeedback\Data\FeedbackChannelData;
+use LBHurtado\XFeedback\Data\FeedbackChannelHealthData;
 use LBHurtado\XFeedback\Data\FeedbackDeliveryData;
 use LBHurtado\XFeedback\Data\FeedbackIntentData;
 use LBHurtado\XFeedback\Data\FeedbackRecipientData;
@@ -14,4 +15,12 @@ interface FeedbackChannelDriverContract
         FeedbackRecipientData $recipient,
         FeedbackChannelData $channel,
     ): FeedbackDeliveryData;
+
+    public function supports(
+        FeedbackIntentData $intent,
+        FeedbackRecipientData $recipient,
+        FeedbackChannelData $channel,
+    ): bool;
+
+    public function health(): FeedbackChannelHealthData;
 }

@@ -10,7 +10,7 @@ use LBHurtado\XFeedback\Data\FeedbackIntentData;
 use LBHurtado\XFeedback\Data\FeedbackRecipientData;
 use LBHurtado\XFeedback\Drivers\Concerns\BuildsBaselineDeliveryData;
 
-final class NullFeedbackChannelDriver implements FeedbackChannelDriverContract
+final class MailFeedbackChannelDriver implements FeedbackChannelDriverContract
 {
     use BuildsBaselineDeliveryData;
 
@@ -19,23 +19,9 @@ final class NullFeedbackChannelDriver implements FeedbackChannelDriverContract
         FeedbackRecipientData $recipient,
         FeedbackChannelData $channel,
     ): FeedbackDeliveryData {
-        return new FeedbackDeliveryData(
-            intent_key: $intent->key,
-            channel: $channel->key,
-            recipient: $recipient,
-            status: FeedbackDeliveryData::StatusSent,
-            result: [
-                'driver' => 'null',
-                'message' => 'suppressed',
-            ],
-            correlation_id: $intent->context?->correlation_id,
-            causation_id: $intent->context?->causation_id,
-            meta: [
-                'feedback_only' => true,
-                'provider_side_effect' => false,
-                'baseline_driver' => true,
-            ],
-        );
+        return $this->queuedBaselineDelivery('mail', $intent, $recipient, $channel, [
+            'message' => 'mail delivery prepared',
+        ]);
     }
 
     public function supports(
@@ -43,11 +29,11 @@ final class NullFeedbackChannelDriver implements FeedbackChannelDriverContract
         FeedbackRecipientData $recipient,
         FeedbackChannelData $channel,
     ): bool {
-        return $channel->key === 'null';
+        return $channel->key === 'mail' && $recipient->email !== null && $recipient->email !== '';
     }
 
     public function health(): FeedbackChannelHealthData
     {
-        return $this->availableHealth('null');
+        return $this->availableHealth('mail');
     }
 }

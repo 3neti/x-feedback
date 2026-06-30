@@ -278,33 +278,68 @@ Deferred:
 - no routes
 - no host package integration
 
-## Next Recommended Phase
+## Phase 11 — Channel Driver Architecture Backfill
 
-Phase 11 — Channel Driver Architecture Backfill.
+Status: Complete.
 
-Recommended scope:
+Implemented:
 
-- reconcile the current package roadmap with `/Users/rli/PhpstormProjects/x-change-sandbox/docs/todo/x-feedback/03-evolution-plan.md`
-- expand `FeedbackChannelDriverContract` beyond `send` only if tests first prove the required `supports` and `health` behavior
-- add baseline non-provider channel drivers for the original todo plan:
-  - `null`
-  - `log`
-  - `in_app`
-  - `mail`
-  - `webhook`
-- keep provider SDKs, real HTTP webhook calls, SMTP assumptions, queues, routes, durable persistence, and host integrations deferred unless explicitly authorized
-- add driver registry and fail-closed tests for known and unknown channels
-- update the Compass with the resolved roadmap correction before moving to recipient preference/suppression work
+- reconciled the current package roadmap with `/Users/rli/PhpstormProjects/x-change-sandbox/docs/todo/x-feedback/03-evolution-plan.md`
+- expanded `FeedbackChannelDriverContract` to support:
+  - `send`
+  - `supports`
+  - `health`
+- added `FeedbackChannelHealthData`
+- added safe baseline channel drivers:
+  - `NullFeedbackChannelDriver`
+  - `LogFeedbackChannelDriver`
+  - `InAppFeedbackChannelDriver`
+  - `MailFeedbackChannelDriver`
+  - `WebhookFeedbackChannelDriver`
+- registered baseline drivers in package configuration
+- added driver registry resolution tests for known drivers
+- preserved unknown-driver fail-closed behavior
+- added driver health tests
+- added driver supports/capability tests
+- added safe handoff delivery tests proving no provider side effects
 
 Reason:
 
-The original planning docs define Phase 2 as Channel Driver Architecture and list `mail`, `webhook`, `in_app`, `log`, and `null` as initial drivers. The package currently has the driver seam, registry, dispatcher, runtime execution, and null driver, but it does not yet have the concrete baseline driver set or the full `send` / `health` / `supports` driver surface. This backfill should be completed before continuing to higher-level preference and suppression policy.
+The original planning docs define Phase 2 as Channel Driver Architecture and list `mail`, `webhook`, `in_app`, `log`, and `null` as initial drivers. Phase 11 backfilled this safe baseline before continuing to higher-level preference and suppression policy.
+
+Deferred:
+
+- no provider SDKs
+- no real HTTP webhook calls
+- no SMTP assumptions
+- no queues
+- no routes
+- no durable persistence
+- no host package integration
+
+## Next Recommended Phase
+
+Phase 12 — Transport Driver Baseline.
+
+Recommended scope:
+
+- create first-class transport drivers:
+  - `email`
+  - `sms`
+  - `webhook`
+- decide whether `mail` remains as an alias/compatibility key for `email`
+- keep the drivers test-first and behind `FeedbackChannelDriverContract`
+- define provider/client seams for SMS and webhook without hardcoding provider SDKs
+- explicitly decide whether to add `spatie/laravel-webhook-server`; it is not currently installed in `composer.json`
+- if dependency approval is not granted, scaffold the webhook driver behind an internal sender contract and keep real outbound webhook delivery deferred
+- preserve fail-closed unknown-driver behavior
+- keep durable persistence, queues, routes, and host integrations deferred unless explicitly authorized
 
 ## Deferred Phase
 
-Phase 12 — Preference and Suppression Policy Baseline.
+Phase 13 — Preference and Suppression Policy Baseline.
 
-Recommended scope after Phase 11:
+Recommended scope after Phase 12:
 
 - define recipient/channel preference DTOs
 - evaluate suppression, opt-out, quiet-hours, and required-channel policy

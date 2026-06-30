@@ -10,7 +10,7 @@ use LBHurtado\XFeedback\Data\FeedbackIntentData;
 use LBHurtado\XFeedback\Data\FeedbackRecipientData;
 use LBHurtado\XFeedback\Drivers\Concerns\BuildsBaselineDeliveryData;
 
-final class NullFeedbackChannelDriver implements FeedbackChannelDriverContract
+final class WebhookFeedbackChannelDriver implements FeedbackChannelDriverContract
 {
     use BuildsBaselineDeliveryData;
 
@@ -19,23 +19,10 @@ final class NullFeedbackChannelDriver implements FeedbackChannelDriverContract
         FeedbackRecipientData $recipient,
         FeedbackChannelData $channel,
     ): FeedbackDeliveryData {
-        return new FeedbackDeliveryData(
-            intent_key: $intent->key,
-            channel: $channel->key,
-            recipient: $recipient,
-            status: FeedbackDeliveryData::StatusSent,
-            result: [
-                'driver' => 'null',
-                'message' => 'suppressed',
-            ],
-            correlation_id: $intent->context?->correlation_id,
-            causation_id: $intent->context?->causation_id,
-            meta: [
-                'feedback_only' => true,
-                'provider_side_effect' => false,
-                'baseline_driver' => true,
-            ],
-        );
+        return $this->queuedBaselineDelivery('webhook', $intent, $recipient, $channel, [
+            'message' => 'webhook delivery prepared',
+            'url' => $channel->options['url'] ?? null,
+        ]);
     }
 
     public function supports(
@@ -43,11 +30,14 @@ final class NullFeedbackChannelDriver implements FeedbackChannelDriverContract
         FeedbackRecipientData $recipient,
         FeedbackChannelData $channel,
     ): bool {
-        return $channel->key === 'null';
+        return $channel->key === 'webhook'
+            && isset($channel->options['url'])
+            && is_string($channel->options['url'])
+            && $channel->options['url'] !== '';
     }
 
     public function health(): FeedbackChannelHealthData
     {
-        return $this->availableHealth('null');
+        return $this->availableHealth('webhook');
     }
 }

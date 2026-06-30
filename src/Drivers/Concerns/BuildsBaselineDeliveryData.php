@@ -1,32 +1,30 @@
 <?php
 
-namespace LBHurtado\XFeedback\Drivers;
+namespace LBHurtado\XFeedback\Drivers\Concerns;
 
-use LBHurtado\XFeedback\Contracts\FeedbackChannelDriverContract;
 use LBHurtado\XFeedback\Data\FeedbackChannelData;
 use LBHurtado\XFeedback\Data\FeedbackChannelHealthData;
 use LBHurtado\XFeedback\Data\FeedbackDeliveryData;
 use LBHurtado\XFeedback\Data\FeedbackIntentData;
 use LBHurtado\XFeedback\Data\FeedbackRecipientData;
-use LBHurtado\XFeedback\Drivers\Concerns\BuildsBaselineDeliveryData;
 
-final class NullFeedbackChannelDriver implements FeedbackChannelDriverContract
+trait BuildsBaselineDeliveryData
 {
-    use BuildsBaselineDeliveryData;
-
-    public function send(
+    protected function queuedBaselineDelivery(
+        string $driver,
         FeedbackIntentData $intent,
         FeedbackRecipientData $recipient,
         FeedbackChannelData $channel,
+        array $result = [],
     ): FeedbackDeliveryData {
         return new FeedbackDeliveryData(
             intent_key: $intent->key,
             channel: $channel->key,
             recipient: $recipient,
-            status: FeedbackDeliveryData::StatusSent,
+            status: FeedbackDeliveryData::StatusQueued,
             result: [
-                'driver' => 'null',
-                'message' => 'suppressed',
+                'driver' => $driver,
+                ...$result,
             ],
             correlation_id: $intent->context?->correlation_id,
             causation_id: $intent->context?->causation_id,
@@ -38,16 +36,16 @@ final class NullFeedbackChannelDriver implements FeedbackChannelDriverContract
         );
     }
 
-    public function supports(
-        FeedbackIntentData $intent,
-        FeedbackRecipientData $recipient,
-        FeedbackChannelData $channel,
-    ): bool {
-        return $channel->key === 'null';
-    }
-
-    public function health(): FeedbackChannelHealthData
+    protected function availableHealth(string $channel): FeedbackChannelHealthData
     {
-        return $this->availableHealth('null');
+        return new FeedbackChannelHealthData(
+            channel: $channel,
+            healthy: true,
+            status: FeedbackChannelHealthData::StatusAvailable,
+            details: [
+                'baseline_driver' => true,
+                'provider_side_effect' => false,
+            ],
+        );
     }
 }

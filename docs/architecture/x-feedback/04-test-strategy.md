@@ -71,6 +71,12 @@ Phase 1 tests cover:
 - max-attempt exhaustion classification
 - retry/freshness evaluator package-consumer binding
 - retry/freshness independence from queues, persistence, provider SDKs, routes, and host packages
+- baseline channel driver registry resolution for `null`, `log`, `in_app`, `mail`, and `webhook`
+- unknown baseline channel fail-closed behavior
+- baseline driver health checks
+- baseline driver supports/capability checks
+- proof that baseline driver sends remain package-local handoff facts without provider side effects
+- channel driver architecture independence from provider SDKs, persistence, queues, routes, and host packages
 
 ## Required Future Coverage
 
@@ -78,7 +84,7 @@ Future phases should add tests for:
 
 - domain event mapping
 - template resolution
-- channel driver delivery dispatch preparation
+- real channel driver delivery dispatch
 - delivery persistence
 - expiration/freshness policy
 - preference and suppression policy
