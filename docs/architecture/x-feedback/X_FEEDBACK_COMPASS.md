@@ -191,6 +191,8 @@ Last updated: 2026-06-30
 - `lbhurtado/sms v2.4.2` declares Laravel 13 support and matches the SMS facade chain used in `/Users/rli/PhpstormProjects/txtcmdr`.
 - `laravel-notification-channels/webhook` currently does not declare Laravel 13 support, so Phase 12 uses an x-feedback-owned webhook sender seam instead.
 - Spatie Webhook Server is Laravel 13-compatible and can be used as the internal webhook transport implementation without leaking into the x-feedback channel API.
+- The remaining Wave 3 roadmap must be driven directly by `/Users/rli/PhpstormProjects/x-change-sandbox/docs/todo/x-feedback/x-feedback_functional_specifications.md`.
+- Functional specification coverage still has gaps after Phase 12: notification preferences, notification routes, feature-profile hardening, artifact rendering policy, durable delivery records, in-app notification state, operational monitoring, delivery console APIs, credential resolution, journal event handoff strengthening, and reusable UI components.
 
 ## Risks
 
@@ -221,6 +223,9 @@ Last updated: 2026-06-30
 - Phase 12 introduces real transport side effects for `email`, `sms`, and queued webhook dispatch. Hosts must not treat successful dispatch as beneficiary receipt, provider confirmation, settlement truth, or workflow completion.
 - Spatie webhook dispatch is queued transport infrastructure. It is not webhook callback handling, provider callback verification, delivery persistence, or audit truth.
 - SMS delivery depends on host/provider configuration for `lbhurtado/sms`; missing provider credentials will surface at transport time.
+- The functional specification includes APIs and reusable UI components, but Cockpit remains responsible for pages. x-feedback UI work must stay component/read-model scoped.
+- Durable delivery records in x-feedback can blur with x-journal. x-feedback may own communication delivery state, while x-journal remains audit/system truth.
+- Credential resolution introduces secret-handling risk. Credentials must not leak into rendered messages, logs, delivery records, provider responses, or journal handoff payloads.
 
 ## Architectural Decisions
 
@@ -269,6 +274,69 @@ Last updated: 2026-06-30
 - Keep `WebhookFeedbackChannelDriver` dependent on `FeedbackWebhookSenderContract`, not directly on Spatie.
 - Use `SpatieFeedbackWebhookSender` as the default implementation of `FeedbackWebhookSenderContract`.
 - Keep `mail` as the Phase 11 compatibility/baseline key and use `email` as the explicit transport key.
+- Prioritize the remaining x-feedback roadmap against the functional specification before adding convenience slices.
+- Treat earlier planning documents as boundary and sequencing guidance, not as a substitute for functional specification coverage.
+- Preserve this order for the next planned slices unless an explicit architectural decision supersedes it:
+  - Phase 13 — Preference and Suppression Policy Baseline
+  - Phase 14 — Notification Route Baseline
+  - Phase 15 — Feature Profile and Template Policy Baseline
+  - Phase 16 — Action and Artifact Rendering Policy Baseline
+  - Phase 17 — Durable Delivery Records Baseline
+  - Phase 18 — In-App Notification Baseline
+  - Phase 19 — Operational Monitoring Baseline
+  - Phase 20 — Delivery Console API Baseline
+  - Phase 21 — Credential Resolution Baseline
+  - Phase 22 — Journal Event Emission / Handoff Integration
+  - Phase 23 — UI Component Baseline
+- Delivery console APIs and UI components must expose communication facts only; they must not decide workflow actions, settlement state, campaign state, or audit truth.
+
+## Functional Specification Coverage Plan
+
+Primary reference:
+
+```text
+/Users/rli/PhpstormProjects/x-change-sandbox/docs/todo/x-feedback/x-feedback_functional_specifications.md
+```
+
+Coverage already established or partially established:
+
+- event-driven notification grammar: Phases 1–2
+- feedback intents and recipients: Phase 1
+- message rendering/templates: Phase 3
+- channel routing/planning: Phase 4
+- dispatch preparation and receipt handoff: Phase 5
+- delivery attempt runtime: Phase 6
+- non-durable delivery recording seam: Phase 7
+- journal-ready receipt facts: Phase 8
+- provider callback fact mapping: Phase 9
+- retry/freshness decision baseline: Phase 10
+- channel driver architecture and health: Phase 11
+- concrete email/SMS/webhook transport baseline: Phase 12
+
+Remaining functional specification coverage should be implemented in this order:
+
+1. Phase 13 — Preference and Suppression Policy Baseline.
+   - Covers notification preferences, suppression, opt-out, quiet hours, required-channel behavior, and freshness-aware non-delivery gates.
+2. Phase 14 — Notification Route Baseline.
+   - Covers `NotificationRoute` and avoids hardcoded recipient channel fields.
+3. Phase 15 — Feature Profile and Template Policy Baseline.
+   - Hardens feature-profile semantics as institutional experiences, not languages or workflow meaning.
+4. Phase 16 — Action and Artifact Rendering Policy Baseline.
+   - Covers supplied action rendering and per-channel artifact rendering policies without owning CTA decisions or artifact storage.
+5. Phase 17 — Durable Delivery Records Baseline.
+   - Covers the delivery state machine, attempt counts, provider responses, receipt tracking, and idempotency strategy while keeping x-journal as audit truth.
+6. Phase 18 — In-App Notification Baseline.
+   - Covers unread/read/archived/dismissed state and mark-read capabilities.
+7. Phase 19 — Operational Monitoring Baseline.
+   - Covers channel health, delivery failures, and retry backlog visibility.
+8. Phase 20 — Delivery Console API Baseline.
+   - Covers delivery status, attempt history, provider responses, and retry action handoff APIs without Cockpit page ownership.
+9. Phase 21 — Credential Resolution Baseline.
+   - Covers tenant/institution/customer credential resolution for SMTP, SMS, webhook signing, and future channels.
+10. Phase 22 — Journal Event Emission / Handoff Integration.
+    - Covers `feedback.created`, `feedback.sent`, `feedback.failed`, and `feedback.expired` handoff facts while x-journal remains system truth.
+11. Phase 23 — UI Component Baseline.
+    - Covers reusable x-feedback UI components while Cockpit owns pages.
 
 ## Test Coverage Status
 
@@ -380,16 +448,16 @@ Recommended scope:
 
 - define recipient/channel preference DTOs
 - evaluate suppression, opt-out, quiet-hours, and required-channel policy
-- keep persistence, provider SDKs, queues, routes, and host integrations deferred unless explicitly authorized
+- keep decisions advisory and side-effect free
+- do not introduce persistence, routes, host policy coupling, lifecycle truth ownership, workflow execution, or journal truth mutation
 
 ## Open Questions
 
 - Which host event should be the first live mapper: claim succeeded, claim failed, disbursement failed, or operator alert?
-- Should durable delivery records belong directly in x-feedback or wait for x-journal receipt integration?
+- What exact persistence shape should Phase 17 use for durable delivery records while keeping x-journal as audit truth?
 - Which transport channel needs production hardening first: email, SMS, or webhook?
 - Should hosts be allowed to plan unregistered channel keys for future drivers, or should planning become fail-closed once real providers are introduced?
-- Should delivery records eventually be persisted directly in x-feedback, or should durable history live only in x-journal?
 - Which provider callback shape should become the first host adapter: SMS delivery receipt, email bounce, webhook acknowledgement, or operator alert callback?
 - Should provider callback idempotency belong in x-feedback delivery records, x-journal, or host adapters?
 - Should retry/freshness decisions eventually be recorded in x-feedback, x-journal, or only host orchestration state?
-- Should durable delivery records live directly in x-feedback or only as x-journal facts after receipt handoff?
+- What package API shape should Phase 20 use for delivery console reads without making x-feedback own Cockpit pages?

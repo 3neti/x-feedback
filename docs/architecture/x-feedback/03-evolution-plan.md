@@ -367,3 +367,256 @@ Recommended scope:
 - define recipient/channel preference DTOs
 - evaluate suppression, opt-out, quiet-hours, and required-channel policy
 - keep persistence, provider SDKs, queues, routes, and host integrations deferred unless explicitly authorized
+
+## Functional Specification Priority
+
+The remaining Wave 3 roadmap is now prioritized against:
+
+```text
+/Users/rli/PhpstormProjects/x-change-sandbox/docs/todo/x-feedback/x-feedback_functional_specifications.md
+```
+
+Earlier planning documents remain guidance for boundaries, sequencing, and non-goals. The functional specification is the primary checklist for remaining x-feedback capability coverage.
+
+Precedence for future x-feedback slices:
+
+1. Functional specification coverage.
+2. Existing architecture invariants and current/target-state documents.
+3. This evolution plan and the Compass.
+4. Current source code and tests.
+
+The current package already covers the grammar, event mapper, intent, template, dispatch preparation, channel driver, transport driver, retry/freshness, callback mapping, and journal handoff baselines. Remaining work should close the functional specification gaps without making x-feedback own lifecycle truth, workflow decisions, campaign orchestration, audit history, CTA decisions, or artifact storage.
+
+## Functional Specification Coverage Roadmap
+
+### Phase 13 — Preference and Suppression Policy Baseline
+
+Status: Next.
+
+Functional specification coverage:
+
+- `NotificationPreference`
+- suppression/opt-out policy
+- quiet-hours policy
+- required-channel policy
+- freshness-aware non-delivery gates
+
+Recommended scope:
+
+- add preference and suppression DTOs
+- add evaluator contract and deterministic evaluator
+- evaluate channel enabled/disabled, opt-out, quiet hours, stale intent, and required-channel behavior
+- keep decisions advisory and side-effect free
+
+Deferred:
+
+- no persistence
+- no routes
+- no provider delivery changes
+- no host policy coupling
+- no lifecycle truth ownership
+
+### Phase 14 — Notification Route Baseline
+
+Functional specification coverage:
+
+- `NotificationRoute`
+- route resolution by recipient and channel
+- removal of hardcoded channel addresses from recipient data paths
+
+Recommended scope:
+
+- add notification route DTOs
+- add route resolver contract and in-memory/config-backed resolver baseline
+- support route verification metadata and primary/fallback route ordering
+- compose routes with delivery planning without mutating recipients
+
+Deferred:
+
+- no database route book
+- no contact package dependency
+- no host route synchronization
+
+### Phase 15 — Feature Profile and Template Policy Baseline
+
+Functional specification coverage:
+
+- feature profiles as institutional experiences
+- profile-aware template policy
+- event key + feature profile + channel template resolution hardening
+
+Recommended scope:
+
+- add feature profile DTO/policy objects if needed
+- strengthen template resolver behavior around profile fallback and channel fallback
+- add tests proving feature profiles are not languages and do not own business meaning
+
+Deferred:
+
+- no template authoring UI
+- no template persistence
+- no approval/version workflow unless separately authorized
+
+### Phase 16 — Action and Artifact Rendering Policy Baseline
+
+Functional specification coverage:
+
+- action rendering support
+- artifact rendering support
+- per-channel artifact policies: `preview`, `link`, `hide`, `attach`
+
+Recommended scope:
+
+- add action rendering policy DTOs if current intent action payloads need shaping
+- add artifact rendering policy DTOs/contracts
+- add per-channel rendering decision tests
+- prove x-feedback renders supplied actions/artifacts but does not decide actions or store artifacts
+
+Deferred:
+
+- no artifact storage
+- no x-action dependency unless explicitly authorized
+- no file generation beyond portable rendering metadata
+
+### Phase 17 — Durable Delivery Records Baseline
+
+Functional specification coverage:
+
+- `FeedbackDelivery`
+- delivery state machine
+- attempt counts, max attempts, expiry, provider response preservation
+- delivery receipts as communication facts
+
+Recommended scope:
+
+- introduce database-backed x-feedback delivery records if authorized
+- preserve append/update semantics appropriate for communication delivery state, not audit truth
+- retain x-journal as the system record for audit history
+- define idempotency keys for provider callbacks and repeated dispatch attempts
+
+Deferred unless explicitly authorized:
+
+- no Cockpit pages
+- no campaign orchestration
+- no business lifecycle mutation
+
+### Phase 18 — In-App Notification Baseline
+
+Functional specification coverage:
+
+- in-app notification state: `unread`, `read`, `archived`, `dismissed`
+- mark read, mark unread, and bulk mark read capabilities
+
+Recommended scope:
+
+- add in-app notification model or durable store if Phase 17 persistence exists
+- add service contracts for read-state transitions
+- prove read-state changes do not mutate delivery truth, workflow truth, or journal truth
+
+Deferred:
+
+- no Cockpit notification center page
+- no frontend component work unless separately authorized
+
+### Phase 19 — Operational Monitoring Baseline
+
+Functional specification coverage:
+
+- channel health
+- delivery failures
+- retry backlog
+- provider health signals such as depleted SMS credits or webhook endpoint failures
+
+Recommended scope:
+
+- add channel health aggregation service
+- add delivery failure/retry backlog read models
+- add tests around health signals from registered drivers and delivery records
+
+Deferred:
+
+- no alert delivery loop unless explicitly authorized
+- no dashboard widgets; Cockpit owns pages/widgets
+
+### Phase 20 — Delivery Console API Baseline
+
+Functional specification coverage:
+
+- APIs for delivery status, attempt history, provider responses, and retry actions
+
+Recommended scope:
+
+- add API/resource contracts or package routes only if authorized for this package
+- expose read-side delivery console data without creating Cockpit pages
+- model retry requests as commands/handoff facts, not automatic workflow decisions
+
+Deferred:
+
+- no Cockpit page ownership
+- no broad operator exposure without redaction/authorization rules
+
+### Phase 21 — Credential Resolution Baseline
+
+Functional specification coverage:
+
+- tenant/institution/customer credential ownership
+- SMTP, SMS provider, Slack, webhook signing, WhatsApp, and Viber credential resolution
+
+Recommended scope:
+
+- expand credential resolver DTOs/contracts
+- resolve credentials dynamically by owner/context/channel
+- keep provider secrets out of rendered messages, logs, delivery records, and journal payloads
+
+Deferred:
+
+- no secret storage implementation unless explicitly authorized
+- no tenant package dependency unless a host integration slice authorizes it
+
+### Phase 22 — Journal Event Emission / Handoff Integration
+
+Functional specification coverage:
+
+- `feedback.created`
+- `feedback.sent`
+- `feedback.failed`
+- `feedback.expired`
+- x-journal remains the system of record
+
+Recommended scope:
+
+- strengthen feedback journal handoff payloads from delivery records and receipts
+- add event names and fact shapes for feedback lifecycle communication events
+- keep x-feedback journal-ready but not journal-dependent unless an explicit adapter slice authorizes a dependency
+
+Deferred:
+
+- no direct x-journal persistence unless explicitly authorized
+- no audit-history ownership in x-feedback
+
+### Phase 23 — UI Component Baseline
+
+Functional specification coverage:
+
+- reusable x-feedback UI components:
+  - `NotificationBadge`
+  - `NotificationBell`
+  - `NotificationList`
+  - `NotificationItem`
+  - `DeliveryStatusBadge`
+  - `DeliveryTimeline`
+  - `DeliveryAttemptTable`
+  - `ChannelIcon`
+  - `RetryDeliveryButton`
+
+Recommended scope:
+
+- create reusable package UI components only after read-side APIs and delivery records are stable
+- keep pages owned by Cockpit
+- use package read models and API seams rather than embedding lifecycle behavior in UI
+
+Deferred:
+
+- no Notification Center page
+- no Claim/Campaign/Settlement page ownership
+- no hidden workflow execution in UI components
