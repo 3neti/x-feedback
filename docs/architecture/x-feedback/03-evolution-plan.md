@@ -177,13 +177,37 @@ Deferred:
 - no host package integration
 - no x-journal delivery receipt integration
 
+## Phase 7 — Delivery Recording Strategy Baseline
+
+Status: Complete.
+
+Implemented:
+
+- `FeedbackDeliveryRecordData`
+- `FeedbackDeliveryAttemptRecorderContract`
+- `InMemoryFeedbackDeliveryAttemptRecorder`
+- delivery recorder service-provider binding
+- non-canonical delivery record modeling
+- in-memory delivery attempt recording from receipt handoff payloads
+- lookup by correlation ID and intent key
+- recorder reset for tests and short-lived baselines
+
+Deferred:
+
+- no database persistence
+- no x-journal dependency
+- no routes
+- no jobs
+- no retry policy
+- no provider SDKs
+- no host package integration
+
 ## Next Recommended Phase
 
-Phase 7 — Delivery Recording Strategy Baseline.
+Phase 8 — Journal Receipt Handoff Baseline.
 
 Recommended scope:
 
-- define delivery record contracts and DTO boundaries
-- decide whether the first recording seam is in-memory, database-backed, or x-journal handoff only
-- keep real provider SDKs, queues, retries, routes, and host integrations deferred unless explicitly authorized
-- preserve receipt handoff as portable output data
+- define x-journal-ready receipt handoff DTOs/payloads without depending on x-journal
+- map delivery records and provider receipts into journal-ready facts
+- keep database persistence, queues, retries, real provider SDKs, routes, and host integrations deferred unless explicitly authorized

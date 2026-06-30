@@ -130,6 +130,20 @@ It must not:
 
 Unknown planned channels must fail closed before later plan items are executed.
 
+## Delivery Records Are Not Journal Truth
+
+Delivery recording may capture communication facts.
+
+It must not:
+
+- become the canonical audit log
+- decide workflow state
+- persist provider responses without explicit authorization
+- require x-journal as a package dependency
+- imply delivery durability when using the in-memory recorder
+
+The Phase 7 recorder is non-persistent and process-local.
+
 ## Communication Is Not Execution
 
 x-feedback must not:

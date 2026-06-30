@@ -46,6 +46,12 @@ Phase 1 tests cover:
 - delivery attempt receipt handoff generation
 - delivery attempt runtime package-consumer binding
 - delivery attempt runtime independence from persistence, queues, routes, and host packages
+- delivery record DTO modeling
+- delivery attempt recording through recorder seam
+- in-memory delivery lookup by correlation ID and intent key
+- recorder reset without mutating attempt data
+- non-persistent recorder package-consumer binding
+- delivery recording independence from persistence, journal, routes, jobs, and host packages
 
 ## Required Future Coverage
 
@@ -55,6 +61,7 @@ Future phases should add tests for:
 - template resolution
 - channel driver delivery dispatch preparation
 - delivery persistence
+- x-journal receipt handoff
 - retry policy
 - expiration/freshness policy
 - provider callbacks

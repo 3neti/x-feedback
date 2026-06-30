@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use LBHurtado\XFeedback\Contracts\FeedbackChannelRegistryContract;
 use LBHurtado\XFeedback\Contracts\FeedbackChannelSelectorContract;
 use LBHurtado\XFeedback\Contracts\FeedbackCredentialResolverContract;
+use LBHurtado\XFeedback\Contracts\FeedbackDeliveryAttemptRecorderContract;
 use LBHurtado\XFeedback\Contracts\FeedbackDeliveryAttemptRuntimeContract;
 use LBHurtado\XFeedback\Contracts\FeedbackDeliveryPlannerContract;
 use LBHurtado\XFeedback\Contracts\FeedbackDispatchPreparerContract;
@@ -24,6 +25,7 @@ use LBHurtado\XFeedback\Services\FeedbackEventMapperRegistry;
 use LBHurtado\XFeedback\Services\FeedbackReceiptHandoffMapper;
 use LBHurtado\XFeedback\Services\FeedbackTemplateRegistry;
 use LBHurtado\XFeedback\Services\FeedbackTemplateResolver;
+use LBHurtado\XFeedback\Services\InMemoryFeedbackDeliveryAttemptRecorder;
 use LBHurtado\XFeedback\Services\NullFeedbackCredentialResolver;
 
 final class XFeedbackServiceProvider extends ServiceProvider
@@ -47,6 +49,7 @@ final class XFeedbackServiceProvider extends ServiceProvider
         $this->app->singleton(FeedbackChannelSelectorContract::class, FeedbackChannelSelector::class);
         $this->app->singleton(FeedbackDeliveryPlannerContract::class, FeedbackDeliveryPlanner::class);
         $this->app->singleton(FeedbackDeliveryAttemptRuntimeContract::class, FeedbackDeliveryAttemptRuntime::class);
+        $this->app->singleton(FeedbackDeliveryAttemptRecorderContract::class, InMemoryFeedbackDeliveryAttemptRecorder::class);
         $this->app->singleton(FeedbackDispatchPreparerContract::class, FeedbackDispatchPreparer::class);
         $this->app->singleton(FeedbackReceiptHandoffMapperContract::class, FeedbackReceiptHandoffMapper::class);
         $this->app->singleton(FeedbackCredentialResolverContract::class, NullFeedbackCredentialResolver::class);

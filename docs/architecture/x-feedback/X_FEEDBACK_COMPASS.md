@@ -15,7 +15,7 @@ It does not decide workflow meaning, execute actions, or own lifecycle truth.
 ## Current Phase
 
 Wave 3 — x-feedback  
-Phase 6 — Delivery Attempt Runtime Baseline  
+Phase 7 — Delivery Recording Strategy Baseline  
 Status: Complete  
 Last updated: 2026-06-30
 
@@ -103,6 +103,15 @@ Last updated: 2026-06-30
   - maps delivery results into provider receipt handoff payloads
   - fails closed for unknown planned delivery channels before later plan items execute
   - keeps durable delivery records, queues, routes, provider SDKs, and host integrations deferred
+- Completed Phase 7 Delivery Recording Strategy Baseline:
+  - added `FeedbackDeliveryRecordData`
+  - added `FeedbackDeliveryAttemptRecorderContract`
+  - added `InMemoryFeedbackDeliveryAttemptRecorder`
+  - added package-consumer binding for the non-persistent delivery recorder
+  - records delivery attempt receipts into non-canonical in-memory records
+  - supports read-side lookup by correlation ID and intent key
+  - supports recorder reset for tests and short-lived baselines
+  - keeps database persistence, x-journal dependency, routes, jobs, and host integrations deferred
 
 ## Discoveries
 
@@ -116,6 +125,8 @@ Last updated: 2026-06-30
 - Provider receipt handoff can be represented as portable data without introducing x-journal or delivery-record persistence.
 - Phase 6 can reuse the existing channel driver contract instead of creating a parallel provider API.
 - The delivery attempt runtime can execute prepared plans without altering the existing `FeedbackDispatcherContract` behavior.
+- Phase 7 can provide a package-local recording seam without making x-feedback the canonical audit log.
+- The first recording strategy is intentionally in-memory and non-durable; x-journal handoff remains a later integration slice.
 
 ## Risks
 
@@ -133,6 +144,8 @@ Last updated: 2026-06-30
 - Provider receipt handoff payloads can contain raw provider responses and require redaction before operator or beneficiary exposure.
 - Delivery attempts are executable runtime behavior even without persistence. Hosts must not rely on them for durability until a delivery-recording slice exists.
 - Unknown planned channels fail closed at runtime. Hosts should validate configuration before production dispatch paths.
+- In-memory delivery records are process-local and not durable. They are useful for tests, previews, and package baselines only.
+- Delivery records in x-feedback must not compete with x-journal as canonical audit truth.
 
 ## Architectural Decisions
 
@@ -159,6 +172,9 @@ Last updated: 2026-06-30
 - Use the existing `FeedbackChannelDriverContract` for Phase 6 delivery attempts.
 - Fail closed when a prepared plan references an unregistered channel driver.
 - Keep delivery attempt runtime non-persistent and synchronous for the baseline.
+- Bind `FeedbackDeliveryAttemptRecorderContract` to `InMemoryFeedbackDeliveryAttemptRecorder` for the Phase 7 baseline.
+- Treat `FeedbackDeliveryRecordData` as a non-canonical communication record, not a durable journal entry.
+- Defer database persistence and x-journal handoff until explicitly authorized.
 
 ## Test Coverage Status
 
@@ -211,17 +227,24 @@ Current coverage:
 - delivery attempt runtime boundary safety
 - green focused Phase 6 suite: `5 passed, 28 assertions`
 - green x-feedback package suite: `40 passed, 208 assertions`
+- delivery record DTO modeling
+- delivery attempt recording through recorder seam
+- in-memory delivery lookup by correlation ID and intent key
+- recorder reset without mutating attempt data
+- non-persistent recorder package-consumer binding
+- delivery recording boundary safety
+- green focused Phase 7 suite: `6 passed, 31 assertions`
+- green x-feedback package suite: `46 passed, 239 assertions`
 
 ## Next Recommended Phase
 
-Phase 7 — Delivery Recording Strategy Baseline.
+Phase 8 — Journal Receipt Handoff Baseline.
 
 Recommended scope:
 
-- define delivery record contracts and DTO boundaries
-- decide whether the first recording seam is in-memory, database-backed, or x-journal handoff only
-- keep real provider SDKs, queues, retries, routes, and host integrations deferred unless explicitly authorized
-- preserve receipt handoff as portable output data
+- define x-journal-ready receipt handoff DTOs/payloads without depending on x-journal
+- map delivery records and provider receipts into journal-ready facts
+- keep database persistence, queues, retries, real provider SDKs, routes, and host integrations deferred unless explicitly authorized
 
 ## Open Questions
 
@@ -229,4 +252,4 @@ Recommended scope:
 - Should durable delivery records belong directly in x-feedback or wait for x-journal receipt integration?
 - Which real channel should be implemented first: email, SMS, webhook, or in-app?
 - Should hosts be allowed to plan unregistered channel keys for future drivers, or should planning become fail-closed once real providers are introduced?
-- Should delivery records belong directly in x-feedback, only as x-journal handoffs, or both with clear canonical ownership?
+- Should delivery records eventually be persisted directly in x-feedback, or should durable history live only in x-journal?
