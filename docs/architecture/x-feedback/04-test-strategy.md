@@ -52,6 +52,12 @@ Phase 1 tests cover:
 - recorder reset without mutating attempt data
 - non-persistent recorder package-consumer binding
 - delivery recording independence from persistence, journal, routes, jobs, and host packages
+- journal-ready receipt handoff DTO modeling
+- delivery record to journal-ready receipt mapping
+- provider receipt to journal-ready receipt mapping
+- batch delivery record handoff mapping
+- journal receipt mapper package-consumer binding
+- journal receipt handoff independence from x-journal dependency, persistence, routes, jobs, and host packages
 
 ## Required Future Coverage
 
@@ -61,7 +67,6 @@ Future phases should add tests for:
 - template resolution
 - channel driver delivery dispatch preparation
 - delivery persistence
-- x-journal receipt handoff
 - retry policy
 - expiration/freshness policy
 - provider callbacks

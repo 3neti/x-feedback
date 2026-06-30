@@ -15,7 +15,7 @@ It does not decide workflow meaning, execute actions, or own lifecycle truth.
 ## Current Phase
 
 Wave 3 — x-feedback  
-Phase 7 — Delivery Recording Strategy Baseline  
+Phase 8 — Journal Receipt Handoff Baseline  
 Status: Complete  
 Last updated: 2026-06-30
 
@@ -112,6 +112,15 @@ Last updated: 2026-06-30
   - supports read-side lookup by correlation ID and intent key
   - supports recorder reset for tests and short-lived baselines
   - keeps database persistence, x-journal dependency, routes, jobs, and host integrations deferred
+- Completed Phase 8 Journal Receipt Handoff Baseline:
+  - added `FeedbackJournalReceiptData`
+  - added `FeedbackJournalReceiptMapperContract`
+  - added `FeedbackJournalReceiptMapper`
+  - added package-consumer binding for journal receipt handoff mapping
+  - maps delivery records into x-journal-ready feedback receipt facts
+  - maps provider receipts into x-journal-ready feedback receipt facts
+  - supports batch mapping from delivery records
+  - keeps x-journal dependency, persistence, routes, jobs, and host integrations deferred
 
 ## Discoveries
 
@@ -127,6 +136,8 @@ Last updated: 2026-06-30
 - The delivery attempt runtime can execute prepared plans without altering the existing `FeedbackDispatcherContract` behavior.
 - Phase 7 can provide a package-local recording seam without making x-feedback the canonical audit log.
 - The first recording strategy is intentionally in-memory and non-durable; x-journal handoff remains a later integration slice.
+- Phase 8 can produce journal-ready facts without importing or depending on x-journal.
+- Journal-ready feedback payloads should be treated as handoff data, not persisted journal entries.
 
 ## Risks
 
@@ -146,6 +157,8 @@ Last updated: 2026-06-30
 - Unknown planned channels fail closed at runtime. Hosts should validate configuration before production dispatch paths.
 - In-memory delivery records are process-local and not durable. They are useful for tests, previews, and package baselines only.
 - Delivery records in x-feedback must not compete with x-journal as canonical audit truth.
+- Journal receipt handoff payloads can carry provider and recipient details. Host integrations must apply redaction before broad operator exposure.
+- x-feedback must not call x-journal directly unless a later explicit integration slice authorizes a dependency or adapter.
 
 ## Architectural Decisions
 
@@ -175,6 +188,9 @@ Last updated: 2026-06-30
 - Bind `FeedbackDeliveryAttemptRecorderContract` to `InMemoryFeedbackDeliveryAttemptRecorder` for the Phase 7 baseline.
 - Treat `FeedbackDeliveryRecordData` as a non-canonical communication record, not a durable journal entry.
 - Defer database persistence and x-journal handoff until explicitly authorized.
+- Bind `FeedbackJournalReceiptMapperContract` as the package-consumer seam for x-journal-ready receipt facts.
+- Treat `FeedbackJournalReceiptData` as a portable handoff payload, not a durable journal entry.
+- Keep x-feedback journal-ready but not journal-dependent.
 
 ## Test Coverage Status
 
@@ -235,16 +251,24 @@ Current coverage:
 - delivery recording boundary safety
 - green focused Phase 7 suite: `6 passed, 31 assertions`
 - green x-feedback package suite: `46 passed, 239 assertions`
+- journal-ready receipt handoff DTO modeling
+- delivery record to journal-ready receipt mapping
+- provider receipt to journal-ready receipt mapping
+- batch delivery record handoff mapping
+- journal receipt mapper package-consumer binding
+- journal handoff boundary safety
+- green focused Phase 8 suite: `6 passed, 41 assertions`
+- green x-feedback package suite: `52 passed, 280 assertions`
 
 ## Next Recommended Phase
 
-Phase 8 — Journal Receipt Handoff Baseline.
+Phase 9 — Provider Callback Feedback Mapping Baseline.
 
 Recommended scope:
 
-- define x-journal-ready receipt handoff DTOs/payloads without depending on x-journal
-- map delivery records and provider receipts into journal-ready facts
-- keep database persistence, queues, retries, real provider SDKs, routes, and host integrations deferred unless explicitly authorized
+- define provider callback feedback DTOs
+- map provider callback facts into feedback receipts and/or feedback events
+- keep real provider SDKs, webhook routes, persistence, queues, and host integrations deferred unless explicitly authorized
 
 ## Open Questions
 
@@ -253,3 +277,4 @@ Recommended scope:
 - Which real channel should be implemented first: email, SMS, webhook, or in-app?
 - Should hosts be allowed to plan unregistered channel keys for future drivers, or should planning become fail-closed once real providers are introduced?
 - Should delivery records eventually be persisted directly in x-feedback, or should durable history live only in x-journal?
+- Which provider callback shape should become the first host adapter: SMS delivery receipt, email bounce, webhook acknowledgement, or operator alert callback?

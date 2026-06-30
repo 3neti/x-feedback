@@ -144,6 +144,20 @@ It must not:
 
 The Phase 7 recorder is non-persistent and process-local.
 
+## Journal Handoff Is Not Journal Persistence
+
+Journal receipt handoff data prepares feedback facts for a future journal consumer.
+
+It must not:
+
+- depend on x-journal classes
+- persist journal entries
+- become canonical audit truth
+- decide workflow state
+- expose raw provider payloads without host-level redaction
+
+x-feedback should be journal-ready, not journal-dependent.
+
 ## Communication Is Not Execution
 
 x-feedback must not:

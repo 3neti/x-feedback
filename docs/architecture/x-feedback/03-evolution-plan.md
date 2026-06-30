@@ -202,12 +202,37 @@ Deferred:
 - no provider SDKs
 - no host package integration
 
+## Phase 8 — Journal Receipt Handoff Baseline
+
+Status: Complete.
+
+Implemented:
+
+- `FeedbackJournalReceiptData`
+- `FeedbackJournalReceiptMapperContract`
+- `FeedbackJournalReceiptMapper`
+- journal receipt mapper service-provider binding
+- delivery record to journal-ready receipt fact mapping
+- provider receipt to journal-ready receipt fact mapping
+- batch delivery record mapping
+- x-journal-ready handoff payloads without x-journal dependency
+
+Deferred:
+
+- no x-journal package dependency
+- no database persistence
+- no journal persistence
+- no routes
+- no jobs
+- no provider SDKs
+- no host package integration
+
 ## Next Recommended Phase
 
-Phase 8 — Journal Receipt Handoff Baseline.
+Phase 9 — Provider Callback Feedback Mapping Baseline.
 
 Recommended scope:
 
-- define x-journal-ready receipt handoff DTOs/payloads without depending on x-journal
-- map delivery records and provider receipts into journal-ready facts
-- keep database persistence, queues, retries, real provider SDKs, routes, and host integrations deferred unless explicitly authorized
+- define provider callback feedback DTOs
+- map provider callback facts into feedback receipts and/or feedback events
+- keep real provider SDKs, webhook routes, persistence, queues, and host integrations deferred unless explicitly authorized
