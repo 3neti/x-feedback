@@ -3,14 +3,18 @@
 namespace LBHurtado\XFeedback\Services;
 
 use LBHurtado\XFeedback\Contracts\FeedbackTemplateRegistryContract;
+use LBHurtado\XFeedback\Contracts\FeedbackTemplatePolicyResolverContract;
 use LBHurtado\XFeedback\Contracts\FeedbackTemplateResolverContract;
 use LBHurtado\XFeedback\Data\FeedbackIntentData;
 use LBHurtado\XFeedback\Data\FeedbackMessageData;
+use LBHurtado\XFeedback\Data\FeedbackTemplateData;
+use LBHurtado\XFeedback\Exceptions\UnknownFeedbackTemplateException;
 
 final class FeedbackTemplateResolver implements FeedbackTemplateResolverContract
 {
     public function __construct(
         private readonly FeedbackTemplateRegistryContract $templates,
+        private readonly FeedbackTemplatePolicyResolverContract $policy,
     ) {}
 
     public function resolve(FeedbackIntentData $intent): FeedbackIntentData
@@ -19,14 +23,10 @@ final class FeedbackTemplateResolver implements FeedbackTemplateResolverContract
             return $intent;
         }
 
-        $template = $this->templates->template(
-            key: $intent->message->template,
-            locale: $intent->message->locale,
-            profile: $this->profile($intent),
-            channel: $this->channel($intent),
-        );
+        $template = $this->template($intent);
 
-        $variables = array_merge($template->variables, $intent->message->variables);
+        $variables = array_merge($this->policy->variablesFor($intent), $template->variables, $intent->message->variables);
+        $featureProfile = $this->profile($intent);
 
         return new FeedbackIntentData(
             key: $intent->key,
@@ -37,9 +37,13 @@ final class FeedbackTemplateResolver implements FeedbackTemplateResolverContract
                 locale: $intent->message->locale ?? $template->locale,
                 template: $intent->message->template,
                 variables: $variables,
-                actions: $intent->message->actions === [] ? $template->actions : $intent->message->actions,
+                actions: $this->actions($intent, $template),
                 artifacts: $intent->message->artifacts === [] ? $template->artifacts : $intent->message->artifacts,
-                meta: array_merge($template->meta, $intent->message->meta),
+                meta: array_merge($template->meta, $intent->message->meta, [
+                    'feature_profile' => $featureProfile,
+                    'template_profile' => $template->profile,
+                    'template_channel' => $template->channel,
+                ]),
             ),
             recipients: $intent->recipients,
             channels: $intent->channels,
@@ -48,6 +52,39 @@ final class FeedbackTemplateResolver implements FeedbackTemplateResolverContract
             expires_at: $intent->expires_at,
             meta: $intent->meta,
         );
+    }
+
+    private function template(FeedbackIntentData $intent): FeedbackTemplateData
+    {
+        foreach ($this->policy->profileCandidatesFor($intent) as $profile) {
+            foreach ($this->policy->channelCandidatesFor($intent) as $channel) {
+                try {
+                    return $this->templates->template(
+                        key: (string) $intent->message->template,
+                        locale: $intent->message->locale,
+                        profile: $profile,
+                        channel: $channel,
+                    );
+                } catch (UnknownFeedbackTemplateException) {
+                    // Try the next explicit policy fallback candidate.
+                }
+            }
+        }
+
+        throw UnknownFeedbackTemplateException::forTemplate((string) $intent->message->template);
+    }
+
+    private function actions(FeedbackIntentData $intent, FeedbackTemplateData $template): array
+    {
+        if ($intent->message->actions !== []) {
+            return $intent->message->actions;
+        }
+
+        if ($template->actions !== []) {
+            return $template->actions;
+        }
+
+        return $this->policy->actionsFor($intent);
     }
 
     /**
@@ -72,10 +109,4 @@ final class FeedbackTemplateResolver implements FeedbackTemplateResolverContract
         return is_scalar($profile) ? (string) $profile : null;
     }
 
-    private function channel(FeedbackIntentData $intent): ?string
-    {
-        $channel = $intent->channels[0]->key ?? null;
-
-        return is_scalar($channel) ? (string) $channel : null;
-    }
 }

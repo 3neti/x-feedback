@@ -18,9 +18,12 @@ use LBHurtado\XFeedback\Contracts\FeedbackProviderCallbackMapperContract;
 use LBHurtado\XFeedback\Contracts\FeedbackReceiptHandoffMapperContract;
 use LBHurtado\XFeedback\Contracts\FeedbackRetryFreshnessEvaluatorContract;
 use LBHurtado\XFeedback\Contracts\FeedbackSuppressionEvaluatorContract;
+use LBHurtado\XFeedback\Contracts\FeedbackTemplatePolicyResolverContract;
 use LBHurtado\XFeedback\Contracts\FeedbackTemplateRegistryContract;
 use LBHurtado\XFeedback\Contracts\FeedbackTemplateResolverContract;
 use LBHurtado\XFeedback\Contracts\FeedbackWebhookSenderContract;
+use LBHurtado\XFeedback\Data\FeedbackFeatureProfileData;
+use LBHurtado\XFeedback\Data\FeedbackTemplateResolutionPolicyData;
 use LBHurtado\XFeedback\Services\FeedbackChannelRegistry;
 use LBHurtado\XFeedback\Services\FeedbackChannelSelector;
 use LBHurtado\XFeedback\Services\FeedbackDeliveryAttemptRuntime;
@@ -34,6 +37,7 @@ use LBHurtado\XFeedback\Services\FeedbackProviderCallbackMapper;
 use LBHurtado\XFeedback\Services\FeedbackReceiptHandoffMapper;
 use LBHurtado\XFeedback\Services\FeedbackRetryFreshnessEvaluator;
 use LBHurtado\XFeedback\Services\FeedbackSuppressionEvaluator;
+use LBHurtado\XFeedback\Services\FeedbackTemplatePolicyResolver;
 use LBHurtado\XFeedback\Services\FeedbackTemplateRegistry;
 use LBHurtado\XFeedback\Services\FeedbackTemplateResolver;
 use LBHurtado\XFeedback\Services\InMemoryFeedbackDeliveryAttemptRecorder;
@@ -55,6 +59,10 @@ final class XFeedbackServiceProvider extends ServiceProvider
 
         $this->app->singleton(FeedbackTemplateRegistryContract::class, function (): FeedbackTemplateRegistry {
             return new FeedbackTemplateRegistry((array) config('x-feedback.templates', []));
+        });
+
+        $this->app->singleton(FeedbackTemplatePolicyResolverContract::class, function (): FeedbackTemplatePolicyResolver {
+            return new FeedbackTemplatePolicyResolver($this->templateResolutionPolicy());
         });
 
         $this->app->singleton(FeedbackNotificationRouteResolverContract::class, function (): FeedbackNotificationRouteResolver {
@@ -90,5 +98,19 @@ final class XFeedbackServiceProvider extends ServiceProvider
                 dirname(__DIR__).'/config/x-feedback.php' => config_path('x-feedback.php'),
             ], 'x-feedback-config');
         }
+    }
+
+    private function templateResolutionPolicy(): FeedbackTemplateResolutionPolicyData
+    {
+        $policy = (array) config('x-feedback.template_policy', []);
+
+        $policy['feature_profiles'] = array_map(
+            fn (mixed $profile): mixed => $profile instanceof FeedbackFeatureProfileData || ! is_array($profile)
+                ? $profile
+                : new FeedbackFeatureProfileData(...$profile),
+            (array) ($policy['feature_profiles'] ?? []),
+        );
+
+        return new FeedbackTemplateResolutionPolicyData(...$policy);
     }
 }

@@ -15,7 +15,7 @@ It does not decide workflow meaning, execute actions, or own lifecycle truth.
 ## Current Phase
 
 Wave 3 — x-feedback  
-Phase 14 — Notification Route Baseline  
+Phase 15 — Feature Profile and Template Policy Baseline  
 Status: Complete  
 Last updated: 2026-07-01
 
@@ -185,6 +185,20 @@ Last updated: 2026-07-01
   - composes notification route resolution into delivery planning
   - preserves legacy recipient `email`/`phone` fallback while hosts migrate to `NotificationRoute`
   - keeps route resolution independent from persistence, the contact package, package routes, provider delivery, host packages, workflow execution, lifecycle truth, and journal truth
+- Completed Phase 15 Feature Profile and Template Policy Baseline:
+  - added `FeedbackFeatureProfileData`
+  - added `FeedbackTemplateResolutionPolicyData`
+  - added `FeedbackTemplatePolicyResolverContract`
+  - added `FeedbackTemplatePolicyResolver`
+  - added package config seam at `x-feedback.template_policy`
+  - added package-consumer binding for template policy resolution
+  - models feature profiles as institutional/presentation experiences, not languages
+  - merges feature-profile variables into template rendering
+  - uses feature-profile actions only when intent and template actions are absent
+  - supports explicit profile fallback and channel fallback candidates
+  - records selected feature profile, template profile, and template channel in resolved message metadata
+  - hardens template registry matching so mismatched profiles/channels fail closed without explicit fallback policy
+  - keeps feature profile/template policy independent from persistence, template authoring UI, approval/version workflow, host packages, workflow execution, lifecycle truth, and journal truth
 
 ## Discoveries
 
@@ -218,6 +232,8 @@ Last updated: 2026-07-01
 - Phase 13 closes the first `NotificationPreference` baseline by adding advisory preference/suppression evaluation without persistence or route ownership.
 - Phase 14 closes the first `NotificationRoute` baseline by adding a package-local resolver seam without a database route book or contact package dependency.
 - Delivery planning now uses the notification route resolver and includes normalized `notification_route` metadata while preserving legacy recipient field fallback.
+- Phase 15 found and fixed unsafe template matching: a profile/channel-specific template could previously be selected for a mismatched requested profile/channel when no default existed.
+- Feature profiles need a dedicated policy seam because they influence branding, wording, variables, and fallback selection without becoming locales or lifecycle truth.
 
 ## Risks
 
@@ -256,6 +272,9 @@ Last updated: 2026-07-01
 - Notification routes can contain sensitive addresses and verification metadata. Future delivery console, journal handoff, and UI surfaces need redaction before broad operator exposure.
 - Legacy recipient `email`/`phone` fallback remains for migration safety. New integrations should prefer `NotificationRoute` data so recipient DTOs do not keep growing channel-specific fields.
 - Config-backed notification routes are a package-consumer seam, not production route storage. Durable route books remain deferred.
+- Feature-profile variables and branding can contain institution-sensitive presentation data. Future preview/operator surfaces need redaction rules.
+- Template policy fallback can accidentally route messages to the wrong institutional wording if hosts configure fallback chains too broadly.
+- Template metadata records selected profile/channel for explainability; consumers must not treat it as business lifecycle or authorization truth.
 
 ## Architectural Decisions
 
@@ -328,6 +347,11 @@ Last updated: 2026-07-01
 - Keep notification route resolution non-persistent and side-effect free.
 - Compose delivery planning with `FeedbackNotificationRouteResolverContract` so delivery plan items carry normalized route metadata.
 - Preserve legacy recipient channel-field fallback as migration compatibility, not as the preferred target shape.
+- Bind `FeedbackTemplatePolicyResolverContract` as the package-consumer seam for feature-profile and template fallback policy.
+- Treat feature profiles as institutional presentation context, not languages, lifecycle state, authorization, or workflow meaning.
+- Keep template policy side-effect free and non-persistent.
+- Template registry matching must fail closed for mismatched profile/channel dimensions unless an explicit template policy fallback selects another candidate.
+- Template resolver may merge profile variables and actions into rendered communication payloads, but it must not decide business actions or artifact ownership.
 
 ## Functional Specification Coverage Plan
 
@@ -353,26 +377,25 @@ Coverage already established or partially established:
 - concrete email/SMS/webhook transport baseline: Phase 12
 - notification preference and suppression baseline: Phase 13
 - notification route baseline: Phase 14
+- feature profile and template policy baseline: Phase 15
 
 Remaining functional specification coverage should be implemented in this order:
 
-1. Phase 15 — Feature Profile and Template Policy Baseline.
-   - Hardens feature-profile semantics as institutional experiences, not languages or workflow meaning.
-2. Phase 16 — Action and Artifact Rendering Policy Baseline.
+1. Phase 16 — Action and Artifact Rendering Policy Baseline.
    - Covers supplied action rendering and per-channel artifact rendering policies without owning CTA decisions or artifact storage.
-3. Phase 17 — Durable Delivery Records Baseline.
+2. Phase 17 — Durable Delivery Records Baseline.
    - Covers the delivery state machine, attempt counts, provider responses, receipt tracking, and idempotency strategy while keeping x-journal as audit truth.
-4. Phase 18 — In-App Notification Baseline.
+3. Phase 18 — In-App Notification Baseline.
    - Covers unread/read/archived/dismissed state and mark-read capabilities.
-5. Phase 19 — Operational Monitoring Baseline.
+4. Phase 19 — Operational Monitoring Baseline.
    - Covers channel health, delivery failures, and retry backlog visibility.
-6. Phase 20 — Delivery Console API Baseline.
+5. Phase 20 — Delivery Console API Baseline.
    - Covers delivery status, attempt history, provider responses, and retry action handoff APIs without Cockpit page ownership.
-7. Phase 21 — Credential Resolution Baseline.
+6. Phase 21 — Credential Resolution Baseline.
    - Covers tenant/institution/customer credential resolution for SMTP, SMS, webhook signing, and future channels.
-8. Phase 22 — Journal Event Emission / Handoff Integration.
+7. Phase 22 — Journal Event Emission / Handoff Integration.
     - Covers `feedback.created`, `feedback.sent`, `feedback.failed`, and `feedback.expired` handoff facts while x-journal remains system truth.
-9. Phase 23 — UI Component Baseline.
+8. Phase 23 — UI Component Baseline.
     - Covers reusable x-feedback UI components while Cockpit owns pages.
 
 ## Test Coverage Status
@@ -498,17 +521,30 @@ Current coverage:
 - notification route boundary safety
 - green focused Phase 14 suite: `8 passed, 36 assertions`
 - green x-feedback package suite: `107 passed, 561 assertions`
+- feature profile DTO modeling
+- template resolution policy DTO modeling
+- template policy resolver package-consumer binding
+- profile fallback through feature-profile policy
+- channel fallback through template policy
+- profile variables merged into rendered templates
+- selected feature/template profile/channel metadata
+- fail-closed mismatched profile template selection
+- fail-closed mismatched channel template selection without policy fallback
+- feature profile/template policy boundary safety
+- green focused Phase 15 suite: `8 passed, 31 assertions`
+- green x-feedback package suite: `115 passed, 592 assertions`
 
 ## Next Recommended Phase
 
-Phase 15 — Feature Profile and Template Policy Baseline.
+Phase 16 — Action and Artifact Rendering Policy Baseline.
 
 Recommended scope:
 
-- harden feature-profile semantics as institutional experiences, not languages or workflow meaning
-- strengthen template resolver behavior around profile fallback and channel fallback
-- add tests proving feature profiles do not own business meaning
-- do not introduce template persistence, template authoring UI, approval/version workflow, lifecycle truth ownership, workflow execution, or host package coupling unless explicitly authorized
+- add action rendering policy DTOs if current intent action payloads need shaping
+- add artifact rendering policy DTOs/contracts
+- add per-channel rendering decision tests
+- prove x-feedback renders supplied actions/artifacts but does not decide actions or store artifacts
+- do not introduce artifact storage, x-action dependency, file generation, lifecycle truth ownership, workflow execution, or host package coupling unless explicitly authorized
 
 ## Open Questions
 

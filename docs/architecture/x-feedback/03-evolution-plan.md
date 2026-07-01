@@ -360,14 +360,15 @@ Deferred:
 
 ## Next Recommended Phase
 
-Phase 15 — Feature Profile and Template Policy Baseline.
+Phase 16 — Action and Artifact Rendering Policy Baseline.
 
 Recommended scope:
 
-- harden feature-profile semantics as institutional experiences
-- strengthen template resolver behavior around profile fallback and channel fallback
-- add tests proving feature profiles are not languages and do not own business meaning
-- keep template authoring UI, template persistence, approval/version workflow, lifecycle truth ownership, and host package coupling deferred unless explicitly authorized
+- add action rendering policy DTOs if current intent action payloads need shaping
+- add artifact rendering policy DTOs/contracts
+- add per-channel rendering decision tests
+- prove x-feedback renders supplied actions/artifacts but does not decide actions or store artifacts
+- keep artifact storage, x-action dependency, file generation, lifecycle truth ownership, and workflow execution deferred unless explicitly authorized
 
 ## Functional Specification Priority
 
@@ -477,6 +478,8 @@ Deferred:
 
 ### Phase 15 — Feature Profile and Template Policy Baseline
 
+Status: Complete.
+
 Functional specification coverage:
 
 - feature profiles as institutional experiences
@@ -489,11 +492,30 @@ Recommended scope:
 - strengthen template resolver behavior around profile fallback and channel fallback
 - add tests proving feature profiles are not languages and do not own business meaning
 
+Implemented:
+
+- `FeedbackFeatureProfileData`
+- `FeedbackTemplateResolutionPolicyData`
+- `FeedbackTemplatePolicyResolverContract`
+- `FeedbackTemplatePolicyResolver`
+- package config seam at `x-feedback.template_policy`
+- service-provider binding for `FeedbackTemplatePolicyResolverContract`
+- feature-profile variables merged into template rendering without making profiles languages
+- feature-profile actions used only when intent and template actions are absent
+- profile fallback candidates through explicit policy
+- channel fallback candidates through explicit policy
+- template resolver metadata for selected feature profile, template profile, and template channel
+- fail-closed template registry behavior for mismatched feature profiles
+- fail-closed template registry behavior for mismatched channels without explicit policy fallback
+- tests proving feature profiles remain presentation/institutional context and do not own business meaning, lifecycle truth, persistence, template authoring UI, or host package coupling
+
 Deferred:
 
 - no template authoring UI
 - no template persistence
 - no approval/version workflow unless separately authorized
+- no lifecycle truth ownership
+- no host package coupling
 
 ### Phase 16 — Action and Artifact Rendering Policy Baseline
 

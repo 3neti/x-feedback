@@ -50,6 +50,13 @@ final class FeedbackTemplateRegistry implements FeedbackTemplateRegistryContract
      */
     private function bestMatch(array $templates, ?string $locale, ?string $profile, ?string $channel): ?FeedbackTemplateData
     {
+        $templates = array_values(array_filter(
+            $templates,
+            fn (FeedbackTemplateData $template): bool => $this->compatible($template->locale, $locale)
+                && $this->compatible($template->profile, $profile)
+                && $this->compatible($template->channel, $channel),
+        ));
+
         usort(
             $templates,
             fn (FeedbackTemplateData $a, FeedbackTemplateData $b): int => $this->score($b, $locale, $profile, $channel)
@@ -57,6 +64,11 @@ final class FeedbackTemplateRegistry implements FeedbackTemplateRegistryContract
         );
 
         return $templates[0] ?? null;
+    }
+
+    private function compatible(?string $templateValue, ?string $requestedValue): bool
+    {
+        return $templateValue === null || $templateValue === $requestedValue;
     }
 
     private function score(FeedbackTemplateData $template, ?string $locale, ?string $profile, ?string $channel): int

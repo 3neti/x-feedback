@@ -37,4 +37,17 @@ return [
     'templates' => [
         //
     ],
+
+    'template_policy' => [
+        'default_profile' => 'default',
+        'profile_fallbacks' => [
+            //
+        ],
+        'channel_fallbacks' => [
+            //
+        ],
+        'feature_profiles' => [
+            //
+        ],
+    ],
 ];
