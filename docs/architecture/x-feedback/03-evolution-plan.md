@@ -649,10 +649,29 @@ Recommended scope:
 - add delivery failure/retry backlog read models
 - add tests around health signals from registered drivers and delivery records
 
+Implemented:
+
+- `FeedbackOperationalMonitorContract`
+- `FeedbackOperationalMonitor`
+- `FeedbackOperationalChannelHealthData`
+- `FeedbackDeliveryFailureSummaryData`
+- `FeedbackRetryBacklogData`
+- `FeedbackOperationalMonitoringSnapshotData`
+- service-provider binding for the operational monitor
+- channel health aggregation through registered channel drivers without delivery sends
+- unavailable monitoring read model for unknown channel keys
+- durable delivery failure summaries by canonical failure status order and channel
+- retry backlog visibility using existing retry/freshness decisions
+- snapshot composition across health, failures, and retry backlog
+- tests proving operational monitoring does not queue retries, mutate delivery status, call delivery providers, own Cockpit pages, or become lifecycle/journal truth
+
 Deferred:
 
 - no alert delivery loop unless explicitly authorized
 - no dashboard widgets; Cockpit owns pages/widgets
+- no retry execution API
+- no provider-credential exposure
+- no delivery console routes or controllers
 
 ### Phase 20 — Delivery Console API Baseline
 

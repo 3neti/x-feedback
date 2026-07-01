@@ -16,6 +16,7 @@ use LBHurtado\XFeedback\Contracts\FeedbackEventMapperRegistryContract;
 use LBHurtado\XFeedback\Contracts\FeedbackInAppNotificationStateManagerContract;
 use LBHurtado\XFeedback\Contracts\FeedbackJournalReceiptMapperContract;
 use LBHurtado\XFeedback\Contracts\FeedbackNotificationRouteResolverContract;
+use LBHurtado\XFeedback\Contracts\FeedbackOperationalMonitorContract;
 use LBHurtado\XFeedback\Contracts\FeedbackProviderCallbackMapperContract;
 use LBHurtado\XFeedback\Contracts\FeedbackReceiptHandoffMapperContract;
 use LBHurtado\XFeedback\Contracts\FeedbackRetryFreshnessEvaluatorContract;
@@ -37,6 +38,7 @@ use LBHurtado\XFeedback\Services\FeedbackEventMapperRegistry;
 use LBHurtado\XFeedback\Services\FeedbackInAppNotificationStateManager;
 use LBHurtado\XFeedback\Services\FeedbackJournalReceiptMapper;
 use LBHurtado\XFeedback\Services\FeedbackNotificationRouteResolver;
+use LBHurtado\XFeedback\Services\FeedbackOperationalMonitor;
 use LBHurtado\XFeedback\Services\FeedbackProviderCallbackMapper;
 use LBHurtado\XFeedback\Services\FeedbackReceiptHandoffMapper;
 use LBHurtado\XFeedback\Services\FeedbackRetryFreshnessEvaluator;
@@ -78,6 +80,14 @@ final class XFeedbackServiceProvider extends ServiceProvider
 
         $this->app->singleton(FeedbackNotificationRouteResolverContract::class, function (): FeedbackNotificationRouteResolver {
             return new FeedbackNotificationRouteResolver((array) config('x-feedback.notification_routes', []));
+        });
+
+        $this->app->singleton(FeedbackOperationalMonitorContract::class, function ($app): FeedbackOperationalMonitor {
+            return new FeedbackOperationalMonitor(
+                channels: $app->make(FeedbackChannelRegistryContract::class),
+                retryFreshness: $app->make(FeedbackRetryFreshnessEvaluatorContract::class),
+                defaultChannels: array_keys((array) config('x-feedback.channels', [])),
+            );
         });
 
         $this->app->singleton(FeedbackTemplateResolverContract::class, FeedbackTemplateResolver::class);

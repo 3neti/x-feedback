@@ -15,7 +15,7 @@ It does not decide workflow meaning, execute actions, or own lifecycle truth.
 ## Current Phase
 
 Wave 3 — x-feedback  
-Phase 18 — In-App Notification Baseline
+Phase 19 — Operational Monitoring Baseline
 Status: Complete  
 Last updated: 2026-07-01
 
@@ -412,6 +412,12 @@ Last updated: 2026-07-01
 - Bind `FeedbackInAppNotificationStateManagerContract` as the package-consumer seam for read/unread/archive/dismiss transitions.
 - Store in-app notification state on durable delivery records for the baseline; do not add Cockpit pages or frontend components in Phase 18.
 - Treat in-app notification state as recipient presentation state, not delivery truth, workflow truth, or audit truth.
+- Bind `FeedbackOperationalMonitorContract` as the package-consumer seam for read-only operational visibility.
+- Use registered channel driver `health()` checks as monitoring input without invoking delivery.
+- Represent unknown monitored channels as unavailable read models instead of treating monitoring as delivery execution.
+- Summarize delivery failures from durable x-feedback delivery records; these records remain communication delivery state, not x-journal audit truth.
+- Build retry backlog visibility from durable delivery records and existing retry/freshness decisions without queueing retries or mutating delivery status.
+- Keep operational monitoring independent from alert delivery loops, Cockpit pages/widgets, routes, provider SDK calls, lifecycle truth, workflow truth, and journal truth.
 
 ## Functional Specification Coverage Plan
 
@@ -441,18 +447,17 @@ Coverage already established or partially established:
 - action and artifact rendering policy baseline: Phase 16
 - durable delivery records baseline: Phase 17
 - in-app notification state baseline: Phase 18
+- operational monitoring baseline: Phase 19
 
 Remaining functional specification coverage should be implemented in this order:
 
-1. Phase 19 — Operational Monitoring Baseline.
-   - Covers channel health, delivery failures, and retry backlog visibility.
-2. Phase 20 — Delivery Console API Baseline.
+1. Phase 20 — Delivery Console API Baseline.
    - Covers delivery status, attempt history, provider responses, and retry action handoff APIs without Cockpit page ownership.
-3. Phase 21 — Credential Resolution Baseline.
+2. Phase 21 — Credential Resolution Baseline.
    - Covers tenant/institution/customer credential resolution for SMTP, SMS, webhook signing, and future channels.
-4. Phase 22 — Journal Event Emission / Handoff Integration.
+3. Phase 22 — Journal Event Emission / Handoff Integration.
     - Covers `feedback.created`, `feedback.sent`, `feedback.failed`, and `feedback.expired` handoff facts while x-journal remains system truth.
-5. Phase 23 — UI Component Baseline.
+4. Phase 23 — UI Component Baseline.
     - Covers reusable x-feedback UI components while Cockpit owns pages.
 
 ## Test Coverage Status
@@ -624,18 +629,26 @@ Current coverage:
 - bulk mark-read by recipient
 - recipient notification listing with hidden-state filtering
 - in-app notification boundary safety
+- operational channel health aggregation through registered drivers
+- unavailable read model for unknown monitored channels
+- failure summary by canonical status order and channel
+- retry backlog counts for retryable, expired, exhausted, and pending delivery records
+- operational snapshot composition
+- operational monitor package-consumer binding
+- operational monitoring boundary safety
 - green focused Phase 18 suite: `9 passed, 38 assertions`
-- green x-feedback package suite: `140 passed, 726 assertions`
+- green focused Phase 19 suite: `7 passed, 44 assertions`
+- green x-feedback package suite: `147 passed, 770 assertions`
 
 ## Next Recommended Phase
 
-Phase 19 — Operational Monitoring Baseline.
+Phase 20 — Delivery Console API Baseline.
 
 Recommended scope:
 
-- expose package-level read models for channel health, delivery failures, and retry backlog visibility
-- reuse existing channel health checks, durable delivery records, and retry/freshness decisions
-- keep monitoring read-only; do not queue retries, call providers, mutate lifecycle state, or add Cockpit pages unless explicitly authorized
+- expose package-level APIs or read contracts for delivery status, attempt history, provider responses, and retry-action handoff
+- keep API/read surfaces communication-only
+- do not make x-feedback own Cockpit pages, workflow authorization, lifecycle truth, audit truth, or retry execution unless explicitly authorized
 
 ## Open Questions
 
