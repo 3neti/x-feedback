@@ -601,6 +601,8 @@ Deferred unless explicitly authorized:
 
 ### Phase 18 — In-App Notification Baseline
 
+Status: Complete.
+
 Functional specification coverage:
 
 - in-app notification state: `unread`, `read`, `archived`, `dismissed`
@@ -612,10 +614,25 @@ Recommended scope:
 - add service contracts for read-state transitions
 - prove read-state changes do not mutate delivery truth, workflow truth, or journal truth
 
+Implemented:
+
+- migration adding in-app notification state columns to `feedback_delivery_records`
+- `FeedbackInAppNotificationData`
+- `FeedbackInAppNotificationStateManagerContract`
+- `FeedbackInAppNotificationStateManager`
+- service-provider binding for the in-app notification state manager
+- default `unread` state for `in_app` durable delivery records
+- read/unread/archive/dismiss transitions
+- bulk mark-read by recipient type and ID
+- recipient notification listing with archived/dismissed filtering by default
+- tests proving in-app state changes do not mutate delivery status, workflow truth, lifecycle truth, or journal truth
+
 Deferred:
 
 - no Cockpit notification center page
 - no frontend component work unless separately authorized
+- no HTTP routes or controllers
+- no workflow action execution
 
 ### Phase 19 — Operational Monitoring Baseline
 

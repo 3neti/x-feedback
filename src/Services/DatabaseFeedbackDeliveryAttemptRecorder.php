@@ -6,6 +6,7 @@ use Illuminate\Support\Str;
 use LBHurtado\XFeedback\Contracts\FeedbackDeliveryAttemptRecorderContract;
 use LBHurtado\XFeedback\Data\FeedbackDeliveryAttemptData;
 use LBHurtado\XFeedback\Data\FeedbackDeliveryRecordData;
+use LBHurtado\XFeedback\Data\FeedbackInAppNotificationData;
 use LBHurtado\XFeedback\Data\FeedbackProviderReceiptData;
 use LBHurtado\XFeedback\Data\FeedbackRecipientData;
 use LBHurtado\XFeedback\Models\FeedbackDeliveryRecord;
@@ -80,6 +81,7 @@ final class DatabaseFeedbackDeliveryAttemptRecorder implements FeedbackDeliveryA
             'delivered_at' => $this->deliveredAt($receipt, $record),
             'failed_at' => $this->failedAt($receipt, $record),
             'expires_at' => $this->stringMeta($receipt, 'expires_at'),
+            'in_app_state' => $this->inAppState($receipt, $record),
             'meta' => [
                 'receipt_meta' => $receipt->meta,
                 'occurred_at' => $receipt->occurred_at,
@@ -164,7 +166,20 @@ final class DatabaseFeedbackDeliveryAttemptRecorder implements FeedbackDeliveryA
             delivered_at: $record->delivered_at?->toISOString(),
             failed_at: $record->failed_at?->toISOString(),
             expires_at: $record->expires_at?->toISOString(),
+            in_app_state: $record->in_app_state,
+            read_at: $record->read_at?->toISOString(),
+            archived_at: $record->archived_at?->toISOString(),
+            dismissed_at: $record->dismissed_at?->toISOString(),
             meta: (array) $record->meta,
         );
+    }
+
+    private function inAppState(FeedbackProviderReceiptData $receipt, FeedbackDeliveryRecord $record): ?string
+    {
+        if ($record->in_app_state !== null) {
+            return $record->in_app_state;
+        }
+
+        return $receipt->channel === 'in_app' ? FeedbackInAppNotificationData::StateUnread : null;
     }
 }

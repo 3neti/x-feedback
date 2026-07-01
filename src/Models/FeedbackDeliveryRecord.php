@@ -22,6 +22,9 @@ class FeedbackDeliveryRecord extends Model
             'delivered_at' => 'datetime',
             'failed_at' => 'datetime',
             'expires_at' => 'datetime',
+            'read_at' => 'datetime',
+            'archived_at' => 'datetime',
+            'dismissed_at' => 'datetime',
         ];
     }
 }

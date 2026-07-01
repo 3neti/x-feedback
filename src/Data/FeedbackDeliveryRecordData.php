@@ -24,6 +24,10 @@ final class FeedbackDeliveryRecordData extends Data
         public ?string $delivered_at = null,
         public ?string $failed_at = null,
         public ?string $expires_at = null,
+        public ?string $in_app_state = null,
+        public ?string $read_at = null,
+        public ?string $archived_at = null,
+        public ?string $dismissed_at = null,
         public array $meta = [],
     ) {}
 }

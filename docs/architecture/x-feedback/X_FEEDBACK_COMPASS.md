@@ -15,7 +15,7 @@ It does not decide workflow meaning, execute actions, or own lifecycle truth.
 ## Current Phase
 
 Wave 3 — x-feedback  
-Phase 17 — Durable Delivery Records Baseline
+Phase 18 — In-App Notification Baseline
 Status: Complete  
 Last updated: 2026-07-01
 
@@ -226,6 +226,17 @@ Last updated: 2026-07-01
   - preserves provider responses, provider message IDs, provider statuses, correlation IDs, causation IDs, expiry, max attempts, and attempt counts
   - updates existing delivery records by idempotency key instead of duplicating repeated attempts
   - keeps delivery records independent from x-journal audit truth, routes, controllers, queues, Cockpit pages, campaign orchestration, lifecycle mutation, and host package coupling
+- Completed Phase 18 In-App Notification Baseline:
+  - added in-app notification state columns to `feedback_delivery_records`
+  - added `FeedbackInAppNotificationData`
+  - added `FeedbackInAppNotificationStateManagerContract`
+  - added `FeedbackInAppNotificationStateManager`
+  - added package-consumer binding for in-app notification state transitions
+  - defaults `in_app` delivery records to `unread`
+  - supports read, unread, archived, and dismissed states
+  - supports mark-read, mark-unread, archive, dismiss, bulk mark-read, and recipient notification listing
+  - filters archived and dismissed notifications from recipient listings by default
+  - keeps in-app notification state independent from Cockpit pages, frontend components, workflow mutation, lifecycle truth, journal truth, and host packages
 
 ## Discoveries
 
@@ -265,6 +276,8 @@ Last updated: 2026-07-01
 - Channel-specific artifact rendering must default safe: SMS hides artifact references and attachments remain disabled unless policy explicitly allows them.
 - Phase 17 replaces the prior in-memory recorder binding with a database-backed implementation while keeping `InMemoryFeedbackDeliveryAttemptRecorder` available as a lightweight seam if a host or test binds it explicitly.
 - Durable x-feedback delivery records are communication state only. They can support delivery status and retry/read APIs, but they are not audit/system truth and do not make x-feedback depend on x-journal.
+- Phase 18 can use the Phase 17 durable delivery record as the in-app notification backing store instead of adding a parallel notification table.
+- In-app state transitions must not mutate delivery status; read/unread/archive/dismiss are recipient-facing presentation states only.
 
 ## Risks
 
@@ -311,6 +324,7 @@ Last updated: 2026-07-01
 - Artifact rendering must not become artifact storage, artifact lifecycle, artifact permissioning, or file generation.
 - Durable delivery records introduce package persistence and model surface area. Future slices must keep that persistence limited to communication delivery state.
 - Delivery record idempotency currently uses explicit receipt idempotency key, provider message ID, or a deterministic fallback. Provider callback adapters must supply stronger provider-specific keys when available.
+- In-app notification listings can expose sensitive beneficiary or claim messaging. Future APIs and UI components must compose recipient authorization and redaction before broad operator or beneficiary exposure.
 
 ## Architectural Decisions
 
@@ -395,6 +409,9 @@ Last updated: 2026-07-01
 - Bind `FeedbackDeliveryAttemptRecorderContract` to `DatabaseFeedbackDeliveryAttemptRecorder` by default after Phase 17.
 - Treat `feedback_delivery_records` as x-feedback communication delivery state, not x-journal audit truth.
 - Use idempotent append/update semantics for repeated provider receipts and dispatch attempts.
+- Bind `FeedbackInAppNotificationStateManagerContract` as the package-consumer seam for read/unread/archive/dismiss transitions.
+- Store in-app notification state on durable delivery records for the baseline; do not add Cockpit pages or frontend components in Phase 18.
+- Treat in-app notification state as recipient presentation state, not delivery truth, workflow truth, or audit truth.
 
 ## Functional Specification Coverage Plan
 
@@ -423,20 +440,19 @@ Coverage already established or partially established:
 - feature profile and template policy baseline: Phase 15
 - action and artifact rendering policy baseline: Phase 16
 - durable delivery records baseline: Phase 17
+- in-app notification state baseline: Phase 18
 
 Remaining functional specification coverage should be implemented in this order:
 
-1. Phase 18 — In-App Notification Baseline.
-   - Covers unread/read/archived/dismissed state and mark-read capabilities.
-2. Phase 19 — Operational Monitoring Baseline.
+1. Phase 19 — Operational Monitoring Baseline.
    - Covers channel health, delivery failures, and retry backlog visibility.
-3. Phase 20 — Delivery Console API Baseline.
+2. Phase 20 — Delivery Console API Baseline.
    - Covers delivery status, attempt history, provider responses, and retry action handoff APIs without Cockpit page ownership.
-4. Phase 21 — Credential Resolution Baseline.
+3. Phase 21 — Credential Resolution Baseline.
    - Covers tenant/institution/customer credential resolution for SMTP, SMS, webhook signing, and future channels.
-5. Phase 22 — Journal Event Emission / Handoff Integration.
+4. Phase 22 — Journal Event Emission / Handoff Integration.
     - Covers `feedback.created`, `feedback.sent`, `feedback.failed`, and `feedback.expired` handoff facts while x-journal remains system truth.
-6. Phase 23 — UI Component Baseline.
+5. Phase 23 — UI Component Baseline.
     - Covers reusable x-feedback UI components while Cockpit owns pages.
 
 ## Test Coverage Status
@@ -599,17 +615,27 @@ Current coverage:
 - durable delivery record boundary safety
 - green focused Phase 17 suite: `8 passed, 45 assertions`
 - green x-feedback package suite: `131 passed, 688 assertions`
+- in-app notification state column migration
+- in-app notification DTO modeling
+- in-app notification state manager package-consumer binding
+- default unread state for in-app delivery records
+- mark-read and mark-unread transitions without delivery status mutation
+- archive and dismiss transitions without delivery truth mutation
+- bulk mark-read by recipient
+- recipient notification listing with hidden-state filtering
+- in-app notification boundary safety
+- green focused Phase 18 suite: `9 passed, 38 assertions`
+- green x-feedback package suite: `140 passed, 726 assertions`
 
 ## Next Recommended Phase
 
-Phase 18 — In-App Notification Baseline.
+Phase 19 — Operational Monitoring Baseline.
 
 Recommended scope:
 
-- add in-app notification state on top of the Phase 17 durable store
-- support unread, read, archived, and dismissed states
-- add mark-read / mark-unread / archive / dismiss service seams
-- keep Cockpit notification center pages, frontend components, workflow mutation, and lifecycle truth ownership out of scope unless explicitly authorized
+- expose package-level read models for channel health, delivery failures, and retry backlog visibility
+- reuse existing channel health checks, durable delivery records, and retry/freshness decisions
+- keep monitoring read-only; do not queue retries, call providers, mutate lifecycle state, or add Cockpit pages unless explicitly authorized
 
 ## Open Questions
 
