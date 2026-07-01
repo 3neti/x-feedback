@@ -3,6 +3,7 @@
 namespace LBHurtado\XFeedback;
 
 use Illuminate\Support\ServiceProvider;
+use LBHurtado\XFeedback\Contracts\FeedbackActionArtifactRendererContract;
 use LBHurtado\XFeedback\Contracts\FeedbackChannelRegistryContract;
 use LBHurtado\XFeedback\Contracts\FeedbackChannelSelectorContract;
 use LBHurtado\XFeedback\Contracts\FeedbackCredentialResolverContract;
@@ -24,6 +25,7 @@ use LBHurtado\XFeedback\Contracts\FeedbackTemplateResolverContract;
 use LBHurtado\XFeedback\Contracts\FeedbackWebhookSenderContract;
 use LBHurtado\XFeedback\Data\FeedbackFeatureProfileData;
 use LBHurtado\XFeedback\Data\FeedbackTemplateResolutionPolicyData;
+use LBHurtado\XFeedback\Services\FeedbackActionArtifactRenderer;
 use LBHurtado\XFeedback\Services\FeedbackChannelRegistry;
 use LBHurtado\XFeedback\Services\FeedbackChannelSelector;
 use LBHurtado\XFeedback\Services\FeedbackDeliveryAttemptRuntime;
@@ -63,6 +65,13 @@ final class XFeedbackServiceProvider extends ServiceProvider
 
         $this->app->singleton(FeedbackTemplatePolicyResolverContract::class, function (): FeedbackTemplatePolicyResolver {
             return new FeedbackTemplatePolicyResolver($this->templateResolutionPolicy());
+        });
+
+        $this->app->singleton(FeedbackActionArtifactRendererContract::class, function (): FeedbackActionArtifactRenderer {
+            return new FeedbackActionArtifactRenderer(
+                actionPolicies: (array) config('x-feedback.rendering.actions', []),
+                artifactPolicies: (array) config('x-feedback.rendering.artifacts', []),
+            );
         });
 
         $this->app->singleton(FeedbackNotificationRouteResolverContract::class, function (): FeedbackNotificationRouteResolver {

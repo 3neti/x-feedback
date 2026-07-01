@@ -15,7 +15,7 @@ It does not decide workflow meaning, execute actions, or own lifecycle truth.
 ## Current Phase
 
 Wave 3 — x-feedback  
-Phase 15 — Feature Profile and Template Policy Baseline  
+Phase 16 — Action and Artifact Rendering Policy Baseline
 Status: Complete  
 Last updated: 2026-07-01
 
@@ -199,6 +199,21 @@ Last updated: 2026-07-01
   - records selected feature profile, template profile, and template channel in resolved message metadata
   - hardens template registry matching so mismatched profiles/channels fail closed without explicit fallback policy
   - keeps feature profile/template policy independent from persistence, template authoring UI, approval/version workflow, host packages, workflow execution, lifecycle truth, and journal truth
+- Completed Phase 16 Action and Artifact Rendering Policy Baseline:
+  - added `FeedbackActionRenderingPolicyData`
+  - added `FeedbackArtifactRenderingPolicyData`
+  - added `FeedbackRenderedActionData`
+  - added `FeedbackRenderedArtifactData`
+  - added `FeedbackRenderingDecisionData`
+  - added `FeedbackActionArtifactRendererContract`
+  - added `FeedbackActionArtifactRenderer`
+  - added package config seam at `x-feedback.rendering`
+  - added package-consumer binding for action/artifact rendering
+  - renders only supplied actions; it does not decide available workflow actions
+  - supports per-channel action presentation defaults for SMS links, webhook payloads, metadata-only channels, and rich-channel buttons
+  - supports per-channel artifact strategies: `preview`, `link`, `hide`, and `attach`
+  - keeps artifact attachments disabled unless an explicit rendering policy enables them
+  - keeps action/artifact rendering independent from x-action, artifact storage, file generation, workflow execution, lifecycle truth, and host packages
 
 ## Discoveries
 
@@ -234,6 +249,8 @@ Last updated: 2026-07-01
 - Delivery planning now uses the notification route resolver and includes normalized `notification_route` metadata while preserving legacy recipient field fallback.
 - Phase 15 found and fixed unsafe template matching: a profile/channel-specific template could previously be selected for a mismatched requested profile/channel when no default existed.
 - Feature profiles need a dedicated policy seam because they influence branding, wording, variables, and fallback selection without becoming locales or lifecycle truth.
+- Phase 16 can use existing `FeedbackMessageData` action/artifact arrays as upstream payloads; no new CTA authority or artifact ownership model is needed inside x-feedback.
+- Channel-specific artifact rendering must default safe: SMS hides artifact references and attachments remain disabled unless policy explicitly allows them.
 
 ## Risks
 
@@ -275,6 +292,9 @@ Last updated: 2026-07-01
 - Feature-profile variables and branding can contain institution-sensitive presentation data. Future preview/operator surfaces need redaction rules.
 - Template policy fallback can accidentally route messages to the wrong institutional wording if hosts configure fallback chains too broadly.
 - Template metadata records selected profile/channel for explainability; consumers must not treat it as business lifecycle or authorization truth.
+- Rendered action targets and artifact references can expose sensitive workflow or evidence URLs. Future preview, API, and operator surfaces need redaction and authorization rules.
+- Action rendering must never be mistaken for x-action capability resolution. x-feedback only shapes actions already supplied by upstream workflow packages.
+- Artifact rendering must not become artifact storage, artifact lifecycle, artifact permissioning, or file generation.
 
 ## Architectural Decisions
 
@@ -352,6 +372,10 @@ Last updated: 2026-07-01
 - Keep template policy side-effect free and non-persistent.
 - Template registry matching must fail closed for mismatched profile/channel dimensions unless an explicit template policy fallback selects another candidate.
 - Template resolver may merge profile variables and actions into rendered communication payloads, but it must not decide business actions or artifact ownership.
+- Bind `FeedbackActionArtifactRendererContract` as the package-consumer seam for supplied action and artifact presentation.
+- Treat rendered actions as presentation of upstream CTA/action payloads, not as workflow availability decisions.
+- Treat rendered artifacts as presentation of upstream artifact references, not as artifact storage, artifact meaning, artifact lifecycle, or permission authority.
+- Keep attachments disabled by default; direct artifact distribution must require explicit rendering policy.
 
 ## Functional Specification Coverage Plan
 
@@ -378,24 +402,23 @@ Coverage already established or partially established:
 - notification preference and suppression baseline: Phase 13
 - notification route baseline: Phase 14
 - feature profile and template policy baseline: Phase 15
+- action and artifact rendering policy baseline: Phase 16
 
 Remaining functional specification coverage should be implemented in this order:
 
-1. Phase 16 — Action and Artifact Rendering Policy Baseline.
-   - Covers supplied action rendering and per-channel artifact rendering policies without owning CTA decisions or artifact storage.
-2. Phase 17 — Durable Delivery Records Baseline.
+1. Phase 17 — Durable Delivery Records Baseline.
    - Covers the delivery state machine, attempt counts, provider responses, receipt tracking, and idempotency strategy while keeping x-journal as audit truth.
-3. Phase 18 — In-App Notification Baseline.
+2. Phase 18 — In-App Notification Baseline.
    - Covers unread/read/archived/dismissed state and mark-read capabilities.
-4. Phase 19 — Operational Monitoring Baseline.
+3. Phase 19 — Operational Monitoring Baseline.
    - Covers channel health, delivery failures, and retry backlog visibility.
-5. Phase 20 — Delivery Console API Baseline.
+4. Phase 20 — Delivery Console API Baseline.
    - Covers delivery status, attempt history, provider responses, and retry action handoff APIs without Cockpit page ownership.
-6. Phase 21 — Credential Resolution Baseline.
+5. Phase 21 — Credential Resolution Baseline.
    - Covers tenant/institution/customer credential resolution for SMTP, SMS, webhook signing, and future channels.
-7. Phase 22 — Journal Event Emission / Handoff Integration.
+6. Phase 22 — Journal Event Emission / Handoff Integration.
     - Covers `feedback.created`, `feedback.sent`, `feedback.failed`, and `feedback.expired` handoff facts while x-journal remains system truth.
-8. Phase 23 — UI Component Baseline.
+7. Phase 23 — UI Component Baseline.
     - Covers reusable x-feedback UI components while Cockpit owns pages.
 
 ## Test Coverage Status
@@ -533,18 +556,28 @@ Current coverage:
 - feature profile/template policy boundary safety
 - green focused Phase 15 suite: `8 passed, 31 assertions`
 - green x-feedback package suite: `115 passed, 592 assertions`
+- action rendering policy DTO modeling
+- artifact rendering policy DTO modeling
+- action/artifact renderer package-consumer binding
+- SMS action rendering as links with default max-action policy
+- rich-channel artifact preview rendering
+- SMS artifact hiding without exposing artifact references
+- explicit attachment policy before rendering artifact attachments
+- artifact type filtering without assigning artifact meaning
+- action/artifact rendering boundary safety
+- green focused Phase 16 suite: `8 passed, 51 assertions`
+- green x-feedback package suite: `123 passed, 643 assertions`
 
 ## Next Recommended Phase
 
-Phase 16 — Action and Artifact Rendering Policy Baseline.
+Phase 17 — Durable Delivery Records Baseline.
 
 Recommended scope:
 
-- add action rendering policy DTOs if current intent action payloads need shaping
-- add artifact rendering policy DTOs/contracts
-- add per-channel rendering decision tests
-- prove x-feedback renders supplied actions/artifacts but does not decide actions or store artifacts
-- do not introduce artifact storage, x-action dependency, file generation, lifecycle truth ownership, workflow execution, or host package coupling unless explicitly authorized
+- introduce database-backed x-feedback delivery records if authorized
+- preserve communication delivery state without replacing x-journal audit truth
+- capture attempt counts, provider response facts, freshness/expiry, and idempotency metadata
+- keep campaign orchestration, Cockpit pages, business lifecycle mutation, and audit truth ownership out of scope unless explicitly authorized
 
 ## Open Questions
 

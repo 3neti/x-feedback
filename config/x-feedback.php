@@ -50,4 +50,38 @@ return [
             //
         ],
     ],
+
+    'rendering' => [
+        'actions' => [
+            'sms' => [
+                'render_as' => 'link',
+                'max_actions' => 1,
+            ],
+            'webhook' => [
+                'render_as' => 'payload',
+            ],
+        ],
+        'artifacts' => [
+            'email' => [
+                'strategy' => 'preview',
+                'allow_attachments' => false,
+            ],
+            'mail' => [
+                'strategy' => 'preview',
+                'allow_attachments' => false,
+            ],
+            'in_app' => [
+                'strategy' => 'preview',
+                'allow_attachments' => false,
+            ],
+            'sms' => [
+                'strategy' => 'hide',
+                'allow_attachments' => false,
+            ],
+            'webhook' => [
+                'strategy' => 'link',
+                'allow_attachments' => false,
+            ],
+        ],
+    ],
 ];

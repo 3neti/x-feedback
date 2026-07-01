@@ -519,6 +519,8 @@ Deferred:
 
 ### Phase 16 — Action and Artifact Rendering Policy Baseline
 
+Status: Complete.
+
 Functional specification coverage:
 
 - action rendering support
@@ -532,11 +534,29 @@ Recommended scope:
 - add per-channel rendering decision tests
 - prove x-feedback renders supplied actions/artifacts but does not decide actions or store artifacts
 
+Implemented:
+
+- `FeedbackActionRenderingPolicyData`
+- `FeedbackArtifactRenderingPolicyData`
+- `FeedbackRenderedActionData`
+- `FeedbackRenderedArtifactData`
+- `FeedbackRenderingDecisionData`
+- `FeedbackActionArtifactRendererContract`
+- `FeedbackActionArtifactRenderer`
+- package config seam at `x-feedback.rendering`
+- service-provider binding for `FeedbackActionArtifactRendererContract`
+- per-channel action rendering defaults for `sms`, `webhook`, `log`, `null`, and rich channels
+- per-channel artifact strategies: `preview`, `link`, `hide`, `attach`
+- attachment rendering disabled by default and only enabled by explicit policy
+- tests proving x-feedback renders only supplied actions/artifacts and does not decide workflow availability, assign artifact meaning, store artifacts, generate files, or depend on x-action
+
 Deferred:
 
 - no artifact storage
 - no x-action dependency unless explicitly authorized
 - no file generation beyond portable rendering metadata
+- no CTA decision ownership
+- no workflow execution
 
 ### Phase 17 — Durable Delivery Records Baseline
 
