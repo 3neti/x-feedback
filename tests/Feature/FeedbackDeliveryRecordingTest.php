@@ -9,7 +9,7 @@ use LBHurtado\XFeedback\Data\FeedbackDeliveryRecordData;
 use LBHurtado\XFeedback\Data\FeedbackIntentData;
 use LBHurtado\XFeedback\Data\FeedbackMessageData;
 use LBHurtado\XFeedback\Data\FeedbackRecipientData;
-use LBHurtado\XFeedback\Services\InMemoryFeedbackDeliveryAttemptRecorder;
+use LBHurtado\XFeedback\Services\DatabaseFeedbackDeliveryAttemptRecorder;
 
 it('models delivery records as non-canonical delivery facts', function () {
     $record = new FeedbackDeliveryRecordData(
@@ -56,7 +56,7 @@ it('records delivery attempt results through the recorder seam', function () {
         ->and($records[1]->recipient->type)->toBe('issuer');
 });
 
-it('keeps in-memory delivery records queryable by correlation id and intent key', function () {
+it('keeps delivery records queryable by correlation id and intent key', function () {
     $recorder = app(FeedbackDeliveryAttemptRecorderContract::class);
     $attempt = app(FeedbackDeliveryAttemptRuntimeContract::class)->execute(
         app(FeedbackDispatchPreparerContract::class)->prepare(feedbackRecordingIntent()),
@@ -69,7 +69,7 @@ it('keeps in-memory delivery records queryable by correlation id and intent key'
         ->and($recorder->all())->toHaveCount(1);
 });
 
-it('can reset the in-memory recorder without mutating attempt data', function () {
+it('can reset the delivery recorder without mutating attempt data', function () {
     $recorder = app(FeedbackDeliveryAttemptRecorderContract::class);
     $attempt = app(FeedbackDeliveryAttemptRuntimeContract::class)->execute(
         app(FeedbackDispatchPreparerContract::class)->prepare(feedbackRecordingIntent()),
@@ -82,17 +82,17 @@ it('can reset the in-memory recorder without mutating attempt data', function ()
         ->and($attempt->deliveries)->toHaveCount(1);
 });
 
-it('binds the non-persistent delivery attempt recorder for package consumers', function () {
-    expect(app(FeedbackDeliveryAttemptRecorderContract::class))->toBeInstanceOf(InMemoryFeedbackDeliveryAttemptRecorder::class)
+it('binds the durable delivery attempt recorder for package consumers', function () {
+    expect(app(FeedbackDeliveryAttemptRecorderContract::class))->toBeInstanceOf(DatabaseFeedbackDeliveryAttemptRecorder::class)
         ->and(app(FeedbackDeliveryAttemptRecorderContract::class))->toBe(app(FeedbackDeliveryAttemptRecorderContract::class));
 });
 
-it('keeps delivery recording baseline independent from persistence journal routes and host packages', function () {
+it('keeps delivery recording baseline independent from journal routes and host packages', function () {
     $packageRoot = dirname(__DIR__, 2);
 
-    expect(is_dir($packageRoot.'/database'))->toBeFalse()
+    expect(is_dir($packageRoot.'/database'))->toBeTrue()
         ->and(is_dir($packageRoot.'/routes'))->toBeFalse()
-        ->and(is_dir($packageRoot.'/src/Models'))->toBeFalse()
+        ->and(is_dir($packageRoot.'/src/Models'))->toBeTrue()
         ->and(is_dir($packageRoot.'/src/Jobs'))->toBeFalse()
         ->and(is_dir($packageRoot.'/src/Http'))->toBeFalse()
         ->and(class_exists('LBHurtado\\XAction\\XActionServiceProvider'))->toBeFalse()

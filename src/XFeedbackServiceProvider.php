@@ -42,7 +42,7 @@ use LBHurtado\XFeedback\Services\FeedbackSuppressionEvaluator;
 use LBHurtado\XFeedback\Services\FeedbackTemplatePolicyResolver;
 use LBHurtado\XFeedback\Services\FeedbackTemplateRegistry;
 use LBHurtado\XFeedback\Services\FeedbackTemplateResolver;
-use LBHurtado\XFeedback\Services\InMemoryFeedbackDeliveryAttemptRecorder;
+use LBHurtado\XFeedback\Services\DatabaseFeedbackDeliveryAttemptRecorder;
 use LBHurtado\XFeedback\Services\NullFeedbackCredentialResolver;
 use LBHurtado\XFeedback\Services\SpatieFeedbackWebhookSender;
 
@@ -82,7 +82,7 @@ final class XFeedbackServiceProvider extends ServiceProvider
         $this->app->singleton(FeedbackChannelSelectorContract::class, FeedbackChannelSelector::class);
         $this->app->singleton(FeedbackDeliveryPlannerContract::class, FeedbackDeliveryPlanner::class);
         $this->app->singleton(FeedbackDeliveryAttemptRuntimeContract::class, FeedbackDeliveryAttemptRuntime::class);
-        $this->app->singleton(FeedbackDeliveryAttemptRecorderContract::class, InMemoryFeedbackDeliveryAttemptRecorder::class);
+        $this->app->singleton(FeedbackDeliveryAttemptRecorderContract::class, DatabaseFeedbackDeliveryAttemptRecorder::class);
         $this->app->singleton(FeedbackDispatchPreparerContract::class, FeedbackDispatchPreparer::class);
         $this->app->singleton(FeedbackJournalReceiptMapperContract::class, FeedbackJournalReceiptMapper::class);
         $this->app->singleton(FeedbackProviderCallbackMapperContract::class, FeedbackProviderCallbackMapper::class);
@@ -107,6 +107,8 @@ final class XFeedbackServiceProvider extends ServiceProvider
                 dirname(__DIR__).'/config/x-feedback.php' => config_path('x-feedback.php'),
             ], 'x-feedback-config');
         }
+
+        $this->loadMigrationsFrom(dirname(__DIR__).'/database/migrations');
     }
 
     private function templateResolutionPolicy(): FeedbackTemplateResolutionPolicyData

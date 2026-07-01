@@ -196,9 +196,9 @@ it('keeps rendering policy independent from x-action artifact storage file gener
     $packageRoot = dirname(__DIR__, 2);
 
     expect(app(FeedbackActionArtifactRendererContract::class))->toBeInstanceOf(FeedbackActionArtifactRenderer::class)
-        ->and(is_dir($packageRoot.'/database'))->toBeFalse()
+        ->and(is_dir($packageRoot.'/database'))->toBeTrue()
         ->and(is_dir($packageRoot.'/routes'))->toBeFalse()
-        ->and(is_dir($packageRoot.'/src/Models'))->toBeFalse()
+        ->and(is_dir($packageRoot.'/src/Models'))->toBeTrue()
         ->and(is_dir($packageRoot.'/src/Actions'))->toBeFalse()
         ->and(is_dir($packageRoot.'/src/ArtifactStorage'))->toBeFalse()
         ->and(class_exists('LBHurtado\\XAction\\XActionServiceProvider'))->toBeFalse()

@@ -148,9 +148,9 @@ it('does not select templates from a mismatched channel without policy fallback'
 it('keeps feature profile and template policy independent from persistence authoring UI lifecycle truth and host packages', function () {
     $packageRoot = dirname(__DIR__, 2);
 
-    expect(is_dir($packageRoot.'/database'))->toBeFalse()
+    expect(is_dir($packageRoot.'/database'))->toBeTrue()
         ->and(is_dir($packageRoot.'/routes'))->toBeFalse()
-        ->and(is_dir($packageRoot.'/src/Models'))->toBeFalse()
+        ->and(is_dir($packageRoot.'/src/Models'))->toBeTrue()
         ->and(is_dir($packageRoot.'/src/Http'))->toBeFalse()
         ->and(is_dir($packageRoot.'/resources/js'))->toBeFalse()
         ->and(class_exists('LBHurtado\\XAction\\XActionServiceProvider'))->toBeFalse()

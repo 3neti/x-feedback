@@ -129,9 +129,9 @@ it('binds dispatch preparation and receipt handoff seams for package consumers',
 it('keeps dispatch preparation independent from provider delivery persistence routes and host packages', function () {
     $packageRoot = dirname(__DIR__, 2);
 
-    expect(is_dir($packageRoot.'/database'))->toBeFalse()
+    expect(is_dir($packageRoot.'/database'))->toBeTrue()
         ->and(is_dir($packageRoot.'/routes'))->toBeFalse()
-        ->and(is_dir($packageRoot.'/src/Models'))->toBeFalse()
+        ->and(is_dir($packageRoot.'/src/Models'))->toBeTrue()
         ->and(is_dir($packageRoot.'/src/Actions'))->toBeFalse()
         ->and(is_dir($packageRoot.'/src/Http'))->toBeFalse()
         ->and(class_exists('LBHurtado\\XAction\\XActionServiceProvider'))->toBeFalse()

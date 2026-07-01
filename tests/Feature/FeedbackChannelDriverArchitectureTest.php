@@ -83,9 +83,9 @@ it('keeps baseline driver sends as package-local handoff facts without provider 
 it('keeps channel driver architecture independent from provider sdks persistence queues routes and host packages', function () {
     $packageRoot = dirname(__DIR__, 2);
 
-    expect(is_dir($packageRoot.'/database'))->toBeFalse()
+    expect(is_dir($packageRoot.'/database'))->toBeTrue()
         ->and(is_dir($packageRoot.'/routes'))->toBeFalse()
-        ->and(is_dir($packageRoot.'/src/Models'))->toBeFalse()
+        ->and(is_dir($packageRoot.'/src/Models'))->toBeTrue()
         ->and(is_dir($packageRoot.'/src/Jobs'))->toBeFalse()
         ->and(is_dir($packageRoot.'/src/Http'))->toBeFalse()
         ->and(class_exists('LBHurtado\\XAction\\XActionServiceProvider'))->toBeFalse()

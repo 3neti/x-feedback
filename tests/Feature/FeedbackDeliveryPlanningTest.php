@@ -118,9 +118,9 @@ it('binds selector and planner for package consumers', function () {
 it('keeps delivery planning independent from provider delivery persistence routes and host packages', function () {
     $packageRoot = dirname(__DIR__, 2);
 
-    expect(is_dir($packageRoot.'/database'))->toBeFalse()
+    expect(is_dir($packageRoot.'/database'))->toBeTrue()
         ->and(is_dir($packageRoot.'/routes'))->toBeFalse()
-        ->and(is_dir($packageRoot.'/src/Models'))->toBeFalse()
+        ->and(is_dir($packageRoot.'/src/Models'))->toBeTrue()
         ->and(is_dir($packageRoot.'/src/Actions'))->toBeFalse()
         ->and(is_dir($packageRoot.'/src/Http'))->toBeFalse()
         ->and(class_exists('LBHurtado\\XAction\\XActionServiceProvider'))->toBeFalse()

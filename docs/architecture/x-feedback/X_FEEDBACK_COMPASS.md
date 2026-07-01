@@ -15,7 +15,7 @@ It does not decide workflow meaning, execute actions, or own lifecycle truth.
 ## Current Phase
 
 Wave 3 — x-feedback  
-Phase 16 — Action and Artifact Rendering Policy Baseline
+Phase 17 — Durable Delivery Records Baseline
 Status: Complete  
 Last updated: 2026-07-01
 
@@ -214,6 +214,18 @@ Last updated: 2026-07-01
   - supports per-channel artifact strategies: `preview`, `link`, `hide`, and `attach`
   - keeps artifact attachments disabled unless an explicit rendering policy enables them
   - keeps action/artifact rendering independent from x-action, artifact storage, file generation, workflow execution, lifecycle truth, and host packages
+- Completed Phase 17 Durable Delivery Records Baseline:
+  - added `feedback_delivery_records` migration
+  - added `FeedbackDeliveryRecord` model
+  - extended `FeedbackDeliveryRecordData` with durable record metadata
+  - added `DatabaseFeedbackDeliveryAttemptRecorder`
+  - bound `FeedbackDeliveryAttemptRecorderContract` to the durable database recorder
+  - loaded package migrations through `XFeedbackServiceProvider`
+  - configured package tests for SQLite + `RefreshDatabase`
+  - records provider receipts as durable communication delivery state
+  - preserves provider responses, provider message IDs, provider statuses, correlation IDs, causation IDs, expiry, max attempts, and attempt counts
+  - updates existing delivery records by idempotency key instead of duplicating repeated attempts
+  - keeps delivery records independent from x-journal audit truth, routes, controllers, queues, Cockpit pages, campaign orchestration, lifecycle mutation, and host package coupling
 
 ## Discoveries
 
@@ -251,6 +263,8 @@ Last updated: 2026-07-01
 - Feature profiles need a dedicated policy seam because they influence branding, wording, variables, and fallback selection without becoming locales or lifecycle truth.
 - Phase 16 can use existing `FeedbackMessageData` action/artifact arrays as upstream payloads; no new CTA authority or artifact ownership model is needed inside x-feedback.
 - Channel-specific artifact rendering must default safe: SMS hides artifact references and attachments remain disabled unless policy explicitly allows them.
+- Phase 17 replaces the prior in-memory recorder binding with a database-backed implementation while keeping `InMemoryFeedbackDeliveryAttemptRecorder` available as a lightweight seam if a host or test binds it explicitly.
+- Durable x-feedback delivery records are communication state only. They can support delivery status and retry/read APIs, but they are not audit/system truth and do not make x-feedback depend on x-journal.
 
 ## Risks
 
@@ -295,6 +309,8 @@ Last updated: 2026-07-01
 - Rendered action targets and artifact references can expose sensitive workflow or evidence URLs. Future preview, API, and operator surfaces need redaction and authorization rules.
 - Action rendering must never be mistaken for x-action capability resolution. x-feedback only shapes actions already supplied by upstream workflow packages.
 - Artifact rendering must not become artifact storage, artifact lifecycle, artifact permissioning, or file generation.
+- Durable delivery records introduce package persistence and model surface area. Future slices must keep that persistence limited to communication delivery state.
+- Delivery record idempotency currently uses explicit receipt idempotency key, provider message ID, or a deterministic fallback. Provider callback adapters must supply stronger provider-specific keys when available.
 
 ## Architectural Decisions
 
@@ -376,6 +392,9 @@ Last updated: 2026-07-01
 - Treat rendered actions as presentation of upstream CTA/action payloads, not as workflow availability decisions.
 - Treat rendered artifacts as presentation of upstream artifact references, not as artifact storage, artifact meaning, artifact lifecycle, or permission authority.
 - Keep attachments disabled by default; direct artifact distribution must require explicit rendering policy.
+- Bind `FeedbackDeliveryAttemptRecorderContract` to `DatabaseFeedbackDeliveryAttemptRecorder` by default after Phase 17.
+- Treat `feedback_delivery_records` as x-feedback communication delivery state, not x-journal audit truth.
+- Use idempotent append/update semantics for repeated provider receipts and dispatch attempts.
 
 ## Functional Specification Coverage Plan
 
@@ -403,22 +422,21 @@ Coverage already established or partially established:
 - notification route baseline: Phase 14
 - feature profile and template policy baseline: Phase 15
 - action and artifact rendering policy baseline: Phase 16
+- durable delivery records baseline: Phase 17
 
 Remaining functional specification coverage should be implemented in this order:
 
-1. Phase 17 — Durable Delivery Records Baseline.
-   - Covers the delivery state machine, attempt counts, provider responses, receipt tracking, and idempotency strategy while keeping x-journal as audit truth.
-2. Phase 18 — In-App Notification Baseline.
+1. Phase 18 — In-App Notification Baseline.
    - Covers unread/read/archived/dismissed state and mark-read capabilities.
-3. Phase 19 — Operational Monitoring Baseline.
+2. Phase 19 — Operational Monitoring Baseline.
    - Covers channel health, delivery failures, and retry backlog visibility.
-4. Phase 20 — Delivery Console API Baseline.
+3. Phase 20 — Delivery Console API Baseline.
    - Covers delivery status, attempt history, provider responses, and retry action handoff APIs without Cockpit page ownership.
-5. Phase 21 — Credential Resolution Baseline.
+4. Phase 21 — Credential Resolution Baseline.
    - Covers tenant/institution/customer credential resolution for SMTP, SMS, webhook signing, and future channels.
-6. Phase 22 — Journal Event Emission / Handoff Integration.
+5. Phase 22 — Journal Event Emission / Handoff Integration.
     - Covers `feedback.created`, `feedback.sent`, `feedback.failed`, and `feedback.expired` handoff facts while x-journal remains system truth.
-7. Phase 23 — UI Component Baseline.
+6. Phase 23 — UI Component Baseline.
     - Covers reusable x-feedback UI components while Cockpit owns pages.
 
 ## Test Coverage Status
@@ -567,22 +585,35 @@ Current coverage:
 - action/artifact rendering boundary safety
 - green focused Phase 16 suite: `8 passed, 51 assertions`
 - green x-feedback package suite: `123 passed, 643 assertions`
+- durable delivery record migration loading
+- database-backed delivery attempt recorder binding
+- provider receipt persistence as communication delivery state
+- provider response preservation
+- delivery idempotency key generation
+- repeated attempt updates without duplicate delivery rows
+- attempt count tracking
+- max-attempt and expiry preservation
+- delivered/failed terminal timestamps
+- durable lookup by correlation ID and intent key
+- reset behavior for package test isolation
+- durable delivery record boundary safety
+- green focused Phase 17 suite: `8 passed, 45 assertions`
+- green x-feedback package suite: `131 passed, 688 assertions`
 
 ## Next Recommended Phase
 
-Phase 17 — Durable Delivery Records Baseline.
+Phase 18 — In-App Notification Baseline.
 
 Recommended scope:
 
-- introduce database-backed x-feedback delivery records if authorized
-- preserve communication delivery state without replacing x-journal audit truth
-- capture attempt counts, provider response facts, freshness/expiry, and idempotency metadata
-- keep campaign orchestration, Cockpit pages, business lifecycle mutation, and audit truth ownership out of scope unless explicitly authorized
+- add in-app notification state on top of the Phase 17 durable store
+- support unread, read, archived, and dismissed states
+- add mark-read / mark-unread / archive / dismiss service seams
+- keep Cockpit notification center pages, frontend components, workflow mutation, and lifecycle truth ownership out of scope unless explicitly authorized
 
 ## Open Questions
 
 - Which host event should be the first live mapper: claim succeeded, claim failed, disbursement failed, or operator alert?
-- What exact persistence shape should Phase 17 use for durable delivery records while keeping x-journal as audit truth?
 - Which transport channel needs production hardening first: email, SMS, or webhook?
 - Should hosts be allowed to plan unregistered channel keys for future drivers, or should planning become fail-closed once real providers are introduced?
 - Which provider callback shape should become the first host adapter: SMS delivery receipt, email bounce, webhook acknowledgement, or operator alert callback?

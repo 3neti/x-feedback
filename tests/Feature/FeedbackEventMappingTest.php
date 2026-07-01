@@ -94,9 +94,9 @@ it('binds the feedback event mapper registry for package consumers', function ()
 it('keeps event mapping independent from delivery persistence routes actions journal and lifecycle truth', function () {
     $packageRoot = dirname(__DIR__, 2);
 
-    expect(is_dir($packageRoot.'/database'))->toBeFalse()
+    expect(is_dir($packageRoot.'/database'))->toBeTrue()
         ->and(is_dir($packageRoot.'/routes'))->toBeFalse()
-        ->and(is_dir($packageRoot.'/src/Models'))->toBeFalse()
+        ->and(is_dir($packageRoot.'/src/Models'))->toBeTrue()
         ->and(is_dir($packageRoot.'/src/Actions'))->toBeFalse()
         ->and(class_exists('LBHurtado\\XAction\\XActionServiceProvider'))->toBeFalse()
         ->and(class_exists('LBHurtado\\XJournal\\XJournalServiceProvider'))->toBeFalse()

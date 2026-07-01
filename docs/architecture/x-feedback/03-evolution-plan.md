@@ -560,6 +560,8 @@ Deferred:
 
 ### Phase 17 — Durable Delivery Records Baseline
 
+Status: Complete.
+
 Functional specification coverage:
 
 - `FeedbackDelivery`
@@ -574,11 +576,28 @@ Recommended scope:
 - retain x-journal as the system record for audit history
 - define idempotency keys for provider callbacks and repeated dispatch attempts
 
+Implemented:
+
+- database migration for `feedback_delivery_records`
+- `FeedbackDeliveryRecord` Eloquent model
+- extended `FeedbackDeliveryRecordData` with delivery ID, idempotency key, attempt counts, provider response, terminal timestamps, and expiry
+- `DatabaseFeedbackDeliveryAttemptRecorder`
+- service-provider binding for `FeedbackDeliveryAttemptRecorderContract` to durable database implementation
+- package migration loading through `XFeedbackServiceProvider`
+- Testbench database isolation with in-memory SQLite and `RefreshDatabase`
+- idempotent update semantics by receipt idempotency key
+- provider response preservation as communication delivery state
+- delivery and failure timestamps for terminal delivery statuses
+- read-side lookup by correlation ID and intent key
+- tests proving durable records remain communication facts and not x-journal audit truth, settlement truth, lifecycle truth, or workflow mutation
+
 Deferred unless explicitly authorized:
 
 - no Cockpit pages
 - no campaign orchestration
 - no business lifecycle mutation
+- no x-journal dependency
+- no retry queueing or provider callback route handling
 
 ### Phase 18 — In-App Notification Baseline
 
