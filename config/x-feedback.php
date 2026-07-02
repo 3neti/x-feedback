@@ -26,6 +26,10 @@ return [
         ],
     ],
 
+    'credentials' => [
+        //
+    ],
+
     'notification_routes' => [
         //
     ],

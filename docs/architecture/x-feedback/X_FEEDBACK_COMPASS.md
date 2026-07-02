@@ -15,7 +15,7 @@ It does not decide workflow meaning, execute actions, or own lifecycle truth.
 ## Current Phase
 
 Wave 3 — x-feedback  
-Phase 20 — Delivery Console API Baseline
+Phase 21 — Credential Resolution Baseline
 Status: Complete  
 Last updated: 2026-07-02
 
@@ -423,6 +423,11 @@ Last updated: 2026-07-02
 - Treat delivery console retry requests as handoff facts only; they do not queue retries, execute providers, authorize workflow actions, or mutate delivery state.
 - Redact sensitive provider response keys before exposing provider payloads through console read models.
 - Keep delivery console APIs independent from Cockpit page ownership, HTTP routes/controllers, retry execution, lifecycle truth, workflow truth, and journal truth.
+- Expand `FeedbackCredentialResolverContract` with typed credential resolution while preserving legacy `credentialsFor()` public-config compatibility.
+- Add `FeedbackCredentialScopeData`, `FeedbackCredentialRequestData`, and `FeedbackCredentialData` as the portable credential resolution grammar.
+- Bind `ConfigFeedbackCredentialResolver` as the baseline package-consumer seam for owner/provider-specific credential lookup.
+- Use `x-feedback.credentials` as a non-storage config seam; no credential database, tenant dependency, encryption-at-rest model, or rotation workflow exists in Phase 21.
+- Treat credential exposure payloads as redacted summaries; secret values must not leak into rendered messages, delivery records, provider responses, journal payloads, logs, or Cockpit surfaces.
 
 ## Functional Specification Coverage Plan
 
@@ -454,14 +459,13 @@ Coverage already established or partially established:
 - in-app notification state baseline: Phase 18
 - operational monitoring baseline: Phase 19
 - delivery console API baseline: Phase 20
+- credential resolution baseline: Phase 21
 
 Remaining functional specification coverage should be implemented in this order:
 
-1. Phase 21 — Credential Resolution Baseline.
-   - Covers tenant/institution/customer credential resolution for SMTP, SMS, webhook signing, and future channels.
-2. Phase 22 — Journal Event Emission / Handoff Integration.
+1. Phase 22 — Journal Event Emission / Handoff Integration.
     - Covers `feedback.created`, `feedback.sent`, `feedback.failed`, and `feedback.expired` handoff facts while x-journal remains system truth.
-3. Phase 23 — UI Component Baseline.
+2. Phase 23 — UI Component Baseline.
     - Covers reusable x-feedback UI components while Cockpit owns pages.
 
 ## Test Coverage Status
@@ -648,20 +652,29 @@ Current coverage:
 - final-record retry ineligible handoff facts
 - delivery console package-consumer binding
 - delivery console boundary safety
+- credential scope and request DTOs
+- owner/provider-specific credential resolution
+- default provider credential fallback
+- explicit missing credential result
+- legacy `credentialsFor()` public-config compatibility
+- redacted credential exposure without secret values
+- credential resolver package-consumer binding
+- credential resolution boundary safety
 - green focused Phase 18 suite: `9 passed, 38 assertions`
 - green focused Phase 19 suite: `7 passed, 44 assertions`
 - green focused Phase 20 suite: `8 passed, 47 assertions`
-- green x-feedback package suite: `155 passed, 817 assertions`
+- green focused Phase 21 suite: `8 passed, 42 assertions`
+- green x-feedback package suite: `163 passed, 859 assertions`
 
 ## Next Recommended Phase
 
-Phase 21 — Credential Resolution Baseline.
+Phase 22 — Journal Event Emission / Handoff Integration.
 
 Recommended scope:
 
-- expand credential resolver DTOs/contracts for tenant/institution/customer credential lookup
-- support channel/provider credential resolution for email, SMS, webhook signing, and future transports
-- keep credentials out of rendered messages, logs, delivery records, provider responses, and journal handoff payloads
+- strengthen feedback journal handoff payloads from delivery records and receipts
+- add event names and fact shapes for feedback lifecycle communication events
+- keep x-feedback journal-ready but not journal-dependent unless an explicit adapter slice authorizes a dependency
 
 ## Open Questions
 

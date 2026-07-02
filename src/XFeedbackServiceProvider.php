@@ -48,8 +48,8 @@ use LBHurtado\XFeedback\Services\FeedbackSuppressionEvaluator;
 use LBHurtado\XFeedback\Services\FeedbackTemplatePolicyResolver;
 use LBHurtado\XFeedback\Services\FeedbackTemplateRegistry;
 use LBHurtado\XFeedback\Services\FeedbackTemplateResolver;
+use LBHurtado\XFeedback\Services\ConfigFeedbackCredentialResolver;
 use LBHurtado\XFeedback\Services\DatabaseFeedbackDeliveryAttemptRecorder;
-use LBHurtado\XFeedback\Services\NullFeedbackCredentialResolver;
 use LBHurtado\XFeedback\Services\SpatieFeedbackWebhookSender;
 
 final class XFeedbackServiceProvider extends ServiceProvider
@@ -105,7 +105,7 @@ final class XFeedbackServiceProvider extends ServiceProvider
         $this->app->singleton(FeedbackReceiptHandoffMapperContract::class, FeedbackReceiptHandoffMapper::class);
         $this->app->singleton(FeedbackRetryFreshnessEvaluatorContract::class, FeedbackRetryFreshnessEvaluator::class);
         $this->app->singleton(FeedbackSuppressionEvaluatorContract::class, FeedbackSuppressionEvaluator::class);
-        $this->app->singleton(FeedbackCredentialResolverContract::class, NullFeedbackCredentialResolver::class);
+        $this->app->singleton(FeedbackCredentialResolverContract::class, ConfigFeedbackCredentialResolver::class);
         $this->app->singleton(FeedbackWebhookSenderContract::class, SpatieFeedbackWebhookSender::class);
         $this->app->singleton(FeedbackDispatcherContract::class, FeedbackDispatcher::class);
         $this->app->singleton(FeedbackEventMapperRegistryContract::class, function ($app): FeedbackEventMapperRegistry {

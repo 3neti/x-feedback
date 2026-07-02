@@ -722,10 +722,26 @@ Recommended scope:
 - resolve credentials dynamically by owner/context/channel
 - keep provider secrets out of rendered messages, logs, delivery records, and journal payloads
 
+Implemented:
+
+- `FeedbackCredentialScopeData`
+- `FeedbackCredentialRequestData`
+- `FeedbackCredentialData`
+- `ConfigFeedbackCredentialResolver`
+- expanded `FeedbackCredentialResolverContract` with typed `resolve()` while preserving `credentialsFor()` compatibility
+- `x-feedback.credentials` config seam
+- owner/provider-specific credential lookup
+- provider default fallback
+- explicit missing credential result
+- redacted exposure payloads that reveal secret keys but not secret values
+- tests proving secrets stay out of rendered-message, delivery-record, provider-response, and journal-payload exposure paths
+
 Deferred:
 
 - no secret storage implementation unless explicitly authorized
 - no tenant package dependency unless a host integration slice authorizes it
+- no provider driver consumption of resolved credentials until a transport hardening slice authorizes it
+- no credential persistence, encryption-at-rest model, or rotation workflow
 
 ### Phase 22 — Journal Event Emission / Handoff Integration
 
