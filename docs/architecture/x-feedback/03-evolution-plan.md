@@ -804,8 +804,31 @@ Recommended scope:
 - keep pages owned by Cockpit
 - use package read models and API seams rather than embedding lifecycle behavior in UI
 
+Implemented:
+
+- `FeedbackUiComponentData`
+- `FeedbackUiComponentPresenterContract`
+- `FeedbackUiComponentPresenter`
+- service-provider binding for the UI component presenter
+- reusable component view models for:
+  - `NotificationBadge`
+  - `NotificationBell`
+  - `NotificationList`
+  - `NotificationItem`
+  - `DeliveryStatusBadge`
+  - `DeliveryTimeline`
+  - `DeliveryAttemptTable`
+  - `ChannelIcon`
+  - `RetryDeliveryButton`
+- notification view models from in-app notification state
+- delivery view models from delivery console read models
+- retry button view model from retry request handoff facts
+- tests proving UI component view models do not own Cockpit pages, routes, frontend assets, workflow execution, lifecycle truth, or host package behavior
+
 Deferred:
 
 - no Notification Center page
 - no Claim/Campaign/Settlement page ownership
 - no hidden workflow execution in UI components
+- no Vue/Inertia/Blade component rendering unless explicitly authorized
+- no navigation, authorization, or operator workflow ownership

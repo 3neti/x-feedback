@@ -15,7 +15,7 @@ It does not decide workflow meaning, execute actions, or own lifecycle truth.
 ## Current Phase
 
 Wave 3 — x-feedback  
-Phase 22 — Journal Event Emission / Handoff Integration
+Phase 23 — UI Component Baseline
 Status: Complete  
 Last updated: 2026-07-02
 
@@ -433,6 +433,11 @@ Last updated: 2026-07-02
 - Map delivery records and provider receipts into `feedback.created`, `feedback.sent`, `feedback.failed`, and `feedback.expired` handoff facts.
 - Redact provider payload secrets before journal event handoff exposure.
 - Keep journal event handoffs independent from x-journal persistence, Laravel events/listeners, queues/jobs, audit-history ownership, lifecycle truth, workflow truth, and host packages.
+- Add `FeedbackUiComponentData` as the portable UI component view-model shape.
+- Bind `FeedbackUiComponentPresenterContract` as the package-consumer seam for reusable feedback UI view models.
+- Provide view models for `NotificationBadge`, `NotificationBell`, `NotificationList`, `NotificationItem`, `DeliveryStatusBadge`, `DeliveryTimeline`, `DeliveryAttemptTable`, `ChannelIcon`, and `RetryDeliveryButton`.
+- Build UI view models from existing in-app notification state, delivery console read models, and retry request handoff facts.
+- Keep UI component baseline independent from Cockpit pages, navigation, authorization, Vue/Inertia/Blade rendering, routes, frontend assets, workflow execution, lifecycle truth, and host packages.
 
 ## Functional Specification Coverage Plan
 
@@ -466,11 +471,12 @@ Coverage already established or partially established:
 - delivery console API baseline: Phase 20
 - credential resolution baseline: Phase 21
 - journal event emission / handoff baseline: Phase 22
+- UI component baseline: Phase 23
 
-Remaining functional specification coverage should be implemented in this order:
+Remaining functional specification coverage:
 
-1. Phase 23 — UI Component Baseline.
-    - Covers reusable x-feedback UI components while Cockpit owns pages.
+- Wave 3 baseline coverage is complete through Phase 23.
+- Future work should be hardening, host integration, or Cockpit consumption only after explicit approval.
 
 ## Test Coverage Status
 
@@ -671,22 +677,29 @@ Current coverage:
 - batch journal-event handoff mapping without delivery record mutation
 - journal event mapper package-consumer binding
 - journal event handoff boundary safety
+- UI component view-model DTO
+- notification badge, bell, list, and item view models
+- delivery status badge, timeline, and attempt table view models
+- channel icon and retry delivery button view models
+- UI component presenter package-consumer binding
+- UI component boundary safety
 - green focused Phase 18 suite: `9 passed, 38 assertions`
 - green focused Phase 19 suite: `7 passed, 44 assertions`
 - green focused Phase 20 suite: `8 passed, 47 assertions`
 - green focused Phase 21 suite: `8 passed, 42 assertions`
 - green focused Phase 22 suite: `12 passed, 90 assertions`
-- green x-feedback package suite: `175 passed, 949 assertions`
+- green focused Phase 23 suite: `6 passed, 40 assertions`
+- green x-feedback package suite: `181 passed, 989 assertions`
 
 ## Next Recommended Phase
 
-Phase 23 — UI Component Baseline.
+Wave 3 x-feedback baseline review / transition.
 
 Recommended scope:
 
-- add reusable x-feedback UI component data/view-model contracts only if still required by the functional specification
-- keep Cockpit ownership of pages, navigation, authorization, and operator workflow
-- do not add frontend build artifacts or host app pages unless explicitly authorized
+- review Wave 3 against the x-feedback functional specification
+- decide whether to harden x-feedback transports/credentials or transition to Wave 4 Cockpit
+- do not add Cockpit pages or host integrations without explicit approval
 
 ## Open Questions
 
