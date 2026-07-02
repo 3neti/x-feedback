@@ -15,9 +15,9 @@ It does not decide workflow meaning, execute actions, or own lifecycle truth.
 ## Current Phase
 
 Wave 3 — x-feedback  
-Phase 19 — Operational Monitoring Baseline
+Phase 20 — Delivery Console API Baseline
 Status: Complete  
-Last updated: 2026-07-01
+Last updated: 2026-07-02
 
 ## Completed Work
 
@@ -418,6 +418,11 @@ Last updated: 2026-07-01
 - Summarize delivery failures from durable x-feedback delivery records; these records remain communication delivery state, not x-journal audit truth.
 - Build retry backlog visibility from durable delivery records and existing retry/freshness decisions without queueing retries or mutating delivery status.
 - Keep operational monitoring independent from alert delivery loops, Cockpit pages/widgets, routes, provider SDK calls, lifecycle truth, workflow truth, and journal truth.
+- Bind `FeedbackDeliveryConsoleContract` as the package-consumer seam for delivery console read/API surfaces.
+- Expose delivery status, filtered delivery history, redacted provider responses, and retry request handoff facts from durable x-feedback delivery records.
+- Treat delivery console retry requests as handoff facts only; they do not queue retries, execute providers, authorize workflow actions, or mutate delivery state.
+- Redact sensitive provider response keys before exposing provider payloads through console read models.
+- Keep delivery console APIs independent from Cockpit page ownership, HTTP routes/controllers, retry execution, lifecycle truth, workflow truth, and journal truth.
 
 ## Functional Specification Coverage Plan
 
@@ -448,16 +453,15 @@ Coverage already established or partially established:
 - durable delivery records baseline: Phase 17
 - in-app notification state baseline: Phase 18
 - operational monitoring baseline: Phase 19
+- delivery console API baseline: Phase 20
 
 Remaining functional specification coverage should be implemented in this order:
 
-1. Phase 20 — Delivery Console API Baseline.
-   - Covers delivery status, attempt history, provider responses, and retry action handoff APIs without Cockpit page ownership.
-2. Phase 21 — Credential Resolution Baseline.
+1. Phase 21 — Credential Resolution Baseline.
    - Covers tenant/institution/customer credential resolution for SMTP, SMS, webhook signing, and future channels.
-3. Phase 22 — Journal Event Emission / Handoff Integration.
+2. Phase 22 — Journal Event Emission / Handoff Integration.
     - Covers `feedback.created`, `feedback.sent`, `feedback.failed`, and `feedback.expired` handoff facts while x-journal remains system truth.
-4. Phase 23 — UI Component Baseline.
+3. Phase 23 — UI Component Baseline.
     - Covers reusable x-feedback UI components while Cockpit owns pages.
 
 ## Test Coverage Status
@@ -636,19 +640,28 @@ Current coverage:
 - operational snapshot composition
 - operational monitor package-consumer binding
 - operational monitoring boundary safety
+- delivery status read models by delivery ID
+- missing delivery fail-closed behavior
+- filtered delivery history read models
+- redacted provider response read models
+- retry request handoff facts without queueing retries or mutating delivery state
+- final-record retry ineligible handoff facts
+- delivery console package-consumer binding
+- delivery console boundary safety
 - green focused Phase 18 suite: `9 passed, 38 assertions`
 - green focused Phase 19 suite: `7 passed, 44 assertions`
-- green x-feedback package suite: `147 passed, 770 assertions`
+- green focused Phase 20 suite: `8 passed, 47 assertions`
+- green x-feedback package suite: `155 passed, 817 assertions`
 
 ## Next Recommended Phase
 
-Phase 20 — Delivery Console API Baseline.
+Phase 21 — Credential Resolution Baseline.
 
 Recommended scope:
 
-- expose package-level APIs or read contracts for delivery status, attempt history, provider responses, and retry-action handoff
-- keep API/read surfaces communication-only
-- do not make x-feedback own Cockpit pages, workflow authorization, lifecycle truth, audit truth, or retry execution unless explicitly authorized
+- expand credential resolver DTOs/contracts for tenant/institution/customer credential lookup
+- support channel/provider credential resolution for email, SMS, webhook signing, and future transports
+- keep credentials out of rendered messages, logs, delivery records, provider responses, and journal handoff payloads
 
 ## Open Questions
 

@@ -685,10 +685,29 @@ Recommended scope:
 - expose read-side delivery console data without creating Cockpit pages
 - model retry requests as commands/handoff facts, not automatic workflow decisions
 
+Implemented:
+
+- `FeedbackDeliveryConsoleContract`
+- `FeedbackDeliveryConsole`
+- `FeedbackDeliveryConsoleRecordData`
+- `FeedbackDeliveryConsoleHistoryData`
+- `FeedbackProviderResponseData`
+- `FeedbackDeliveryConsoleRetryRequestData`
+- `UnknownFeedbackDeliveryRecordException`
+- service-provider binding for the delivery console contract
+- read-side delivery status lookup by delivery ID
+- delivery history filtering by communication delivery dimensions
+- redacted provider response visibility
+- retry request handoff facts based on existing retry/freshness decisions
+- tests proving delivery console APIs do not create Cockpit pages, queue retries, mutate delivery state, own lifecycle truth, or expose provider credentials
+
 Deferred:
 
 - no Cockpit page ownership
 - no broad operator exposure without redaction/authorization rules
+- no HTTP routes or controllers until explicitly authorized
+- no retry execution
+- no authorization policy implementation until a host/Cockpit integration slice authorizes it
 
 ### Phase 21 — Credential Resolution Baseline
 
