@@ -15,7 +15,7 @@ It does not decide workflow meaning, execute actions, or own lifecycle truth.
 ## Current Phase
 
 Wave 3 — x-feedback  
-Phase 21 — Credential Resolution Baseline
+Phase 22 — Journal Event Emission / Handoff Integration
 Status: Complete  
 Last updated: 2026-07-02
 
@@ -428,6 +428,11 @@ Last updated: 2026-07-02
 - Bind `ConfigFeedbackCredentialResolver` as the baseline package-consumer seam for owner/provider-specific credential lookup.
 - Use `x-feedback.credentials` as a non-storage config seam; no credential database, tenant dependency, encryption-at-rest model, or rotation workflow exists in Phase 21.
 - Treat credential exposure payloads as redacted summaries; secret values must not leak into rendered messages, delivery records, provider responses, journal payloads, logs, or Cockpit surfaces.
+- Add `FeedbackJournalEventData` as the functional journal event handoff shape for feedback lifecycle communication facts.
+- Bind `FeedbackJournalEventMapperContract` as the package-consumer seam for journal event handoff mapping.
+- Map delivery records and provider receipts into `feedback.created`, `feedback.sent`, `feedback.failed`, and `feedback.expired` handoff facts.
+- Redact provider payload secrets before journal event handoff exposure.
+- Keep journal event handoffs independent from x-journal persistence, Laravel events/listeners, queues/jobs, audit-history ownership, lifecycle truth, workflow truth, and host packages.
 
 ## Functional Specification Coverage Plan
 
@@ -460,12 +465,11 @@ Coverage already established or partially established:
 - operational monitoring baseline: Phase 19
 - delivery console API baseline: Phase 20
 - credential resolution baseline: Phase 21
+- journal event emission / handoff baseline: Phase 22
 
 Remaining functional specification coverage should be implemented in this order:
 
-1. Phase 22 — Journal Event Emission / Handoff Integration.
-    - Covers `feedback.created`, `feedback.sent`, `feedback.failed`, and `feedback.expired` handoff facts while x-journal remains system truth.
-2. Phase 23 — UI Component Baseline.
+1. Phase 23 — UI Component Baseline.
     - Covers reusable x-feedback UI components while Cockpit owns pages.
 
 ## Test Coverage Status
@@ -660,21 +664,29 @@ Current coverage:
 - redacted credential exposure without secret values
 - credential resolver package-consumer binding
 - credential resolution boundary safety
+- journal event handoff DTO
+- functional event-name mapping for created, sent, failed, and expired feedback facts
+- delivery-record to journal-event handoff mapping
+- provider-receipt to journal-event handoff mapping with provider payload redaction
+- batch journal-event handoff mapping without delivery record mutation
+- journal event mapper package-consumer binding
+- journal event handoff boundary safety
 - green focused Phase 18 suite: `9 passed, 38 assertions`
 - green focused Phase 19 suite: `7 passed, 44 assertions`
 - green focused Phase 20 suite: `8 passed, 47 assertions`
 - green focused Phase 21 suite: `8 passed, 42 assertions`
-- green x-feedback package suite: `163 passed, 859 assertions`
+- green focused Phase 22 suite: `12 passed, 90 assertions`
+- green x-feedback package suite: `175 passed, 949 assertions`
 
 ## Next Recommended Phase
 
-Phase 22 — Journal Event Emission / Handoff Integration.
+Phase 23 — UI Component Baseline.
 
 Recommended scope:
 
-- strengthen feedback journal handoff payloads from delivery records and receipts
-- add event names and fact shapes for feedback lifecycle communication events
-- keep x-feedback journal-ready but not journal-dependent unless an explicit adapter slice authorizes a dependency
+- add reusable x-feedback UI component data/view-model contracts only if still required by the functional specification
+- keep Cockpit ownership of pages, navigation, authorization, and operator workflow
+- do not add frontend build artifacts or host app pages unless explicitly authorized
 
 ## Open Questions
 

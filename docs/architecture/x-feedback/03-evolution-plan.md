@@ -759,10 +759,29 @@ Recommended scope:
 - add event names and fact shapes for feedback lifecycle communication events
 - keep x-feedback journal-ready but not journal-dependent unless an explicit adapter slice authorizes a dependency
 
+Implemented:
+
+- `FeedbackJournalEventData`
+- `FeedbackJournalEventMapperContract`
+- `FeedbackJournalEventMapper`
+- service-provider binding for the journal event mapper
+- functional journal event names:
+  - `feedback.created`
+  - `feedback.sent`
+  - `feedback.failed`
+  - `feedback.expired`
+- delivery-record to journal-event handoff mapping
+- provider-receipt to journal-event handoff mapping
+- provider payload redaction before journal handoff exposure
+- batch mapping from delivery records to journal event handoff facts
+- tests proving x-feedback stays journal-ready but not x-journal-dependent
+
 Deferred:
 
 - no direct x-journal persistence unless explicitly authorized
 - no audit-history ownership in x-feedback
+- no Laravel event dispatch/listener registration
+- no queue or job emission
 
 ### Phase 23 — UI Component Baseline
 
