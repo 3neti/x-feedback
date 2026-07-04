@@ -11,6 +11,7 @@ use LBHurtado\XFeedback\Data\FeedbackIntentData;
 use LBHurtado\XFeedback\Data\FeedbackRecipientData;
 use LBHurtado\XFeedback\Drivers\Concerns\BuildsBaselineDeliveryData;
 use LBHurtado\XFeedback\Mail\FeedbackEmailMessage;
+use Throwable;
 
 final class EmailFeedbackChannelDriver implements FeedbackChannelDriverContract
 {
@@ -21,7 +22,18 @@ final class EmailFeedbackChannelDriver implements FeedbackChannelDriverContract
         FeedbackRecipientData $recipient,
         FeedbackChannelData $channel,
     ): FeedbackDeliveryData {
-        Mail::to($recipient->email)->send(new FeedbackEmailMessage($intent, $recipient, $channel));
+        try {
+            Mail::to($recipient->email)->send(new FeedbackEmailMessage($intent, $recipient, $channel));
+        } catch (Throwable $exception) {
+            return $this->providerFailureDelivery(
+                driver: 'email',
+                transport: 'laravel_mail',
+                exception: $exception,
+                intent: $intent,
+                recipient: $recipient,
+                channel: $channel,
+            );
+        }
 
         return new FeedbackDeliveryData(
             intent_key: $intent->key,

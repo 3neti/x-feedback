@@ -710,3 +710,110 @@ Recommended scope:
 - Should provider callback idempotency belong in x-feedback delivery records, x-journal, or host adapters?
 - Should retry/freshness decisions eventually be recorded in x-feedback, x-journal, or only host orchestration state?
 - What package API shape should Phase 20 use for delivery console reads without making x-feedback own Cockpit pages?
+
+## Parity Review Completed — 2026-07-04
+
+Report path:
+
+```text
+docs/architecture/x-feedback/PARITY_REPORT.md
+```
+
+Main findings:
+
+- Overall parity assessment: mostly aligned.
+- Implementation maturity: usable runtime.
+- Primary risk level: moderate.
+- Recommended next action: stabilize.
+- The package is significantly beyond the original Phase 1 scaffold and now implements the Wave 3 baseline through event mapping, template/profile policy, delivery planning, dispatch preparation, driver execution, durable delivery records, in-app notification state, retry/freshness decisions, suppression, notification routes, credentials, provider callback mapping, journal handoff, operational monitoring, delivery console read models, and UI component view models.
+- The implementation generally preserves the intended boundaries: x-feedback owns communication delivery state and handoff facts, while x-change, x-journal, x-campaign, action execution, artifact storage, and Cockpit pages remain outside the package.
+
+Risks:
+
+- Retry/freshness evaluation is not fully aligned with durable records: durable records store `attempt_count` and `last_attempted_at`, while `FeedbackRetryFreshnessEvaluator` reads `meta['attempts']` and `meta['last_attempt_at']`.
+- Concrete `email`, `sms`, and `webhook` drivers create real transport side effects; provider failures need explicit conversion/containment tests before production host integration.
+- Webhook payloads include channel options, which may leak sensitive configuration if hosts place secrets in options.
+- Durable delivery records and journal handoff data must continue to be treated as communication facts, not x-journal audit truth or workflow truth.
+- UI component view models are package-owned, but host applications still need authorization, redaction, and rendering decisions.
+
+Test status:
+
+```text
+php -d memory_limit=1G vendor/bin/pest
+181 passed (989 assertions)
+```
+
+Next recommended action:
+
+- Run a stabilization slice focused on durable delivery state, retry/freshness correctness, provider failure mapping, sensitive-data minimization, and invariant coverage before adding more channels or host/Cockpit integrations.
+
+## Stabilization Slice Completed — 2026-07-04
+
+Scope:
+
+- Durable retry/freshness alignment.
+- Provider failure conversion for concrete transports.
+- Webhook payload secret redaction.
+- Architecture boundary hardening before read-only Cockpit integration.
+
+Completed work:
+
+- Updated `FeedbackRetryFreshnessEvaluator` to prefer durable delivery record fields over legacy metadata:
+  - `attempt_count` before `meta.attempts`
+  - `max_attempts` before policy max attempts
+  - `last_attempted_at` before `meta.last_attempt_at`
+  - `expires_at` before stale-window classification
+- Preserved legacy `meta.attempts` and `meta.last_attempt_at` fallback for non-durable callers.
+- Updated delivery console retry eligibility and operational monitor retry backlog coverage to prove they use durable record fields correctly.
+- Added safe provider failure conversion for `EmailFeedbackChannelDriver`, `SmsFeedbackChannelDriver`, and `WebhookFeedbackChannelDriver`.
+- Provider transport exceptions now return `FeedbackDeliveryData` with `failed_retryable`, safe error type/message, retryable metadata, and no exception trace exposure.
+- Preserved fail-closed unknown channel behavior through `UnknownFeedbackChannelException`.
+- Updated webhook payload construction so channel options in outbound payloads are recursively redacted for secret-like keys while the driver may still use URL, headers, and secret internally for sending/signing.
+- Added explicit handoff/view-model metadata:
+  - journal event handoffs include `journal_handoff_only`
+  - UI component view models include `portable`
+- Added `FeedbackArchitectureBoundaryHardeningTest` to guard against x-change, x-journal, x-action, x-campaign, Cockpit pages/controllers/routes/jobs, workflow mutation, action execution, and audit-log ownership.
+
+Tests added/updated:
+
+- `tests/Feature/FeedbackRetryFreshnessPolicyTest.php`
+- `tests/Feature/FeedbackOperationalMonitoringBaselineTest.php`
+- `tests/Feature/FeedbackDeliveryConsoleApiBaselineTest.php`
+- `tests/Feature/FeedbackTransportDriverBaselineTest.php`
+- `tests/Feature/FeedbackArchitectureBoundaryHardeningTest.php`
+
+Commands run:
+
+```text
+php -d memory_limit=1G vendor/bin/pest tests/Feature/FeedbackRetryFreshnessPolicyTest.php
+11 passed (46 assertions)
+
+php -d memory_limit=1G vendor/bin/pest tests/Feature/FeedbackOperationalMonitoringBaselineTest.php
+8 passed (48 assertions)
+
+php -d memory_limit=1G vendor/bin/pest tests/Feature/FeedbackDeliveryConsoleApiBaselineTest.php
+9 passed (51 assertions)
+
+php -d memory_limit=1G vendor/bin/pest tests/Feature/FeedbackTransportDriverBaselineTest.php
+15 passed (87 assertions)
+
+php -d memory_limit=1G vendor/bin/pest
+198 passed (1083 assertions)
+```
+
+Formatting:
+
+```text
+vendor/bin/pint --dirty --format agent
+Failed because vendor/bin/pint is not installed in this package.
+```
+
+Current assessment:
+
+- x-feedback is now safe for read-only Cockpit integration through delivery console, operational monitor, and UI component presenter seams.
+- x-feedback is still not ready for Cockpit-triggered resend/retry mutations without a later explicit action-handoff or retry-execution slice.
+
+Remaining risks:
+
+- Provider callback HTTP routes, callback signature verification, queued retry execution, tenant credential database storage, x-journal persistence, and host authorization/redaction remain deferred.
+- Concrete provider drivers still perform real side effects when configured; host apps must keep read-only Cockpit surfaces separate from mutation-capable retry/resend flows.

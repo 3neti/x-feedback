@@ -1,8 +1,11 @@
 <?php
 
 use LBHurtado\XFeedback\Contracts\FeedbackRetryFreshnessEvaluatorContract;
+use LBHurtado\XFeedback\Contracts\FeedbackDeliveryAttemptRecorderContract;
+use LBHurtado\XFeedback\Data\FeedbackDeliveryAttemptData;
 use LBHurtado\XFeedback\Data\FeedbackDeliveryData;
 use LBHurtado\XFeedback\Data\FeedbackDeliveryRecordData;
+use LBHurtado\XFeedback\Data\FeedbackProviderReceiptData;
 use LBHurtado\XFeedback\Data\FeedbackRecipientData;
 use LBHurtado\XFeedback\Data\FeedbackRetryDecisionData;
 use LBHurtado\XFeedback\Data\FeedbackRetryPolicyData;
@@ -88,6 +91,83 @@ it('classifies records beyond max attempts as exhausted', function () {
         ->and($decision->reason)->toBe('max_attempts');
 });
 
+it('uses durable attempt count before legacy metadata when evaluating exhaustion', function () {
+    $record = feedbackRetryDurableRecord(
+        status: FeedbackDeliveryData::StatusFailedRetryable,
+        providerMessageId: 'sms-durable-exhausted',
+        occurredAt: '2026-07-03T12:00:00+08:00',
+        meta: ['idempotency_key' => 'sms-durable-exhausted', 'attempts' => 1],
+        repeat: 3,
+    );
+
+    $decision = app(FeedbackRetryFreshnessEvaluatorContract::class)->evaluateRecord(
+        record: $record,
+        policy: new FeedbackRetryPolicyData(max_attempts: 3),
+        now: '2026-07-03T12:01:00+08:00',
+    );
+
+    expect($record->attempt_count)->toBe(3)
+        ->and($decision->attempts)->toBe(3)
+        ->and($decision->classification)->toBe(FeedbackRetryDecisionData::ClassificationExhausted)
+        ->and($decision->reason)->toBe('max_attempts');
+});
+
+it('uses durable last attempted timestamp before legacy metadata when evaluating freshness', function () {
+    $record = feedbackRetryDurableRecord(
+        status: FeedbackDeliveryData::StatusPending,
+        providerMessageId: 'sms-durable-stale',
+        occurredAt: '2026-07-03T04:00:00+00:00',
+        meta: ['idempotency_key' => 'sms-durable-stale'],
+    );
+
+    $decision = app(FeedbackRetryFreshnessEvaluatorContract::class)->evaluateRecord(
+        record: $record,
+        policy: new FeedbackRetryPolicyData(stale_after_seconds: 300),
+        now: '2026-07-03T04:06:00+00:00',
+    );
+
+    expect($record->last_attempted_at)->not->toBeNull()
+        ->and($decision->classification)->toBe(FeedbackRetryDecisionData::ClassificationExpired)
+        ->and($decision->reason)->toBe('stale');
+});
+
+it('uses durable expires at timestamp before stale window evaluation', function () {
+    $record = feedbackRetryDurableRecord(
+        status: FeedbackDeliveryData::StatusFailedRetryable,
+        providerMessageId: 'sms-durable-expired',
+        occurredAt: '2026-07-03T04:00:00+00:00',
+        meta: [
+            'idempotency_key' => 'sms-durable-expired',
+            'expires_at' => '2026-07-03T04:05:00+00:00',
+        ],
+    );
+
+    $decision = app(FeedbackRetryFreshnessEvaluatorContract::class)->evaluateRecord(
+        record: $record,
+        policy: new FeedbackRetryPolicyData(stale_after_seconds: 3600),
+        now: '2026-07-03T04:06:00+00:00',
+    );
+
+    expect($record->expires_at)->not->toBeNull()
+        ->and($decision->classification)->toBe(FeedbackRetryDecisionData::ClassificationExpired)
+        ->and($decision->should_expire)->toBeTrue()
+        ->and($decision->reason)->toBe('expired_at');
+});
+
+it('keeps legacy retry metadata fallback when durable fields are absent', function () {
+    $decision = app(FeedbackRetryFreshnessEvaluatorContract::class)->evaluateRecord(
+        record: feedbackRetryRecord(
+            status: FeedbackDeliveryData::StatusFailedRetryable,
+            meta: ['attempts' => 3, 'last_attempt_at' => '2026-07-03T12:00:00+08:00'],
+        ),
+        policy: new FeedbackRetryPolicyData(max_attempts: 3),
+        now: '2026-07-03T12:01:00+08:00',
+    );
+
+    expect($decision->attempts)->toBe(3)
+        ->and($decision->classification)->toBe(FeedbackRetryDecisionData::ClassificationExhausted);
+});
+
 it('binds the retry freshness evaluator for package consumers', function () {
     expect(app(FeedbackRetryFreshnessEvaluatorContract::class))->toBeInstanceOf(FeedbackRetryFreshnessEvaluator::class)
         ->and(app(FeedbackRetryFreshnessEvaluatorContract::class))->toBe(app(FeedbackRetryFreshnessEvaluatorContract::class));
@@ -119,4 +199,37 @@ function feedbackRetryRecord(string $status, array $meta = []): FeedbackDelivery
         causation_id: 'journal-1',
         meta: $meta,
     );
+}
+
+function feedbackRetryDurableRecord(
+    string $status,
+    string $providerMessageId,
+    string $occurredAt,
+    array $meta = [],
+    int $repeat = 1,
+): FeedbackDeliveryRecordData {
+    $records = [];
+
+    for ($attempt = 0; $attempt < $repeat; $attempt++) {
+        $records = app(FeedbackDeliveryAttemptRecorderContract::class)->record(new FeedbackDeliveryAttemptData(
+            intent_key: 'claim.succeeded.claimant',
+            receipts: [
+                new FeedbackProviderReceiptData(
+                    intent_key: 'claim.succeeded.claimant',
+                    channel: 'sms',
+                    recipient: new FeedbackRecipientData(type: 'claimant', id: 'user-1', phone: '+639171234567'),
+                    status: $status,
+                    provider_message_id: $providerMessageId,
+                    provider_status: strtoupper($status),
+                    provider_payload: ['provider' => 'sms'],
+                    correlation_id: 'execution-1',
+                    causation_id: 'journal-1',
+                    occurred_at: $occurredAt,
+                    meta: $meta,
+                ),
+            ],
+        ));
+    }
+
+    return $records[0];
 }

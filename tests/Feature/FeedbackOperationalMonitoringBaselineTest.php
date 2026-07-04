@@ -72,13 +72,15 @@ it('builds a retry backlog from delivery records without queueing retries or mut
         status: FeedbackDeliveryData::StatusFailedRetryable,
         channel: 'webhook',
         providerMessageId: 'webhook-exhausted',
-        meta: ['attempts' => 3, 'last_attempt_at' => '2026-07-01T01:05:00+08:00'],
+        meta: ['idempotency_key' => 'webhook-exhausted', 'last_attempt_at' => '2026-07-01T01:05:00+08:00'],
+        repeat: 3,
     );
     feedbackOperationalRecord(
         status: FeedbackDeliveryData::StatusPending,
         channel: 'mail',
         providerMessageId: 'mail-expired',
-        meta: ['attempts' => 0, 'last_attempt_at' => '2026-07-01T00:00:00+08:00'],
+        meta: ['attempts' => 0],
+        occurredAt: '2026-06-30T17:00:00+00:00',
     );
 
     $backlog = app(FeedbackOperationalMonitorContract::class)->retryBacklog(
@@ -95,6 +97,48 @@ it('builds a retry backlog from delivery records without queueing retries or mut
         ->and($backlog->decisions)->toHaveCount(3)
         ->and($backlog->decisions[0])->toBeInstanceOf(FeedbackRetryDecisionData::class)
         ->and(FeedbackDeliveryRecord::query()->where('provider_message_id', 'sms-retryable')->value('status'))->toBe(FeedbackDeliveryData::StatusFailedRetryable);
+});
+
+it('uses durable delivery fields when building retry backlog decisions', function () {
+    feedbackOperationalRecord(
+        status: FeedbackDeliveryData::StatusFailedRetryable,
+        channel: 'sms',
+        providerMessageId: 'sms-durable-exhausted',
+        meta: ['idempotency_key' => 'sms-durable-exhausted', 'attempts' => 1],
+    );
+    feedbackOperationalRecord(
+        status: FeedbackDeliveryData::StatusFailedRetryable,
+        channel: 'sms',
+        providerMessageId: 'sms-durable-exhausted',
+        meta: ['idempotency_key' => 'sms-durable-exhausted', 'attempts' => 1],
+    );
+    feedbackOperationalRecord(
+        status: FeedbackDeliveryData::StatusFailedRetryable,
+        channel: 'sms',
+        providerMessageId: 'sms-durable-exhausted',
+        meta: ['idempotency_key' => 'sms-durable-exhausted', 'attempts' => 1],
+    );
+
+    feedbackOperationalRecord(
+        status: FeedbackDeliveryData::StatusPending,
+        channel: 'mail',
+        providerMessageId: 'mail-durable-expired',
+        meta: [
+            'idempotency_key' => 'mail-durable-expired',
+            'expires_at' => '2026-06-30T17:05:00+00:00',
+        ],
+        occurredAt: '2026-06-30T17:00:00+00:00',
+    );
+
+    $backlog = app(FeedbackOperationalMonitorContract::class)->retryBacklog(
+        policy: new FeedbackRetryPolicyData(max_attempts: 3, stale_after_seconds: 3600),
+        now: '2026-07-01T01:06:00+08:00',
+    );
+
+    expect($backlog->total)->toBe(2)
+        ->and($backlog->exhausted)->toBe(1)
+        ->and($backlog->expired)->toBe(1)
+        ->and($backlog->decisions[0]->attempts)->toBe(3);
 });
 
 it('builds an operational snapshot from health failures and retry backlog', function () {
@@ -142,23 +186,27 @@ function feedbackOperationalRecord(
     string $channel,
     string $providerMessageId,
     array $meta = [],
+    ?string $occurredAt = null,
+    int $repeat = 1,
 ): void {
-    app(FeedbackDeliveryAttemptRecorderContract::class)->record(new FeedbackDeliveryAttemptData(
-        intent_key: 'claim.succeeded.claimant',
-        receipts: [
-            new FeedbackProviderReceiptData(
-                intent_key: 'claim.succeeded.claimant',
-                channel: $channel,
-                recipient: new FeedbackRecipientData(type: 'claimant', id: 'user-1', email: 'user@example.test', phone: '+639171234567'),
-                status: $status,
-                provider_message_id: $providerMessageId,
-                provider_status: strtoupper($status),
-                provider_payload: ['provider' => $channel],
-                correlation_id: 'execution-1',
-                causation_id: 'feedback-run-1',
-                occurred_at: $meta['last_attempt_at'] ?? '2026-07-01T01:00:00+08:00',
-                meta: $meta,
-            ),
-        ],
-    ));
+    for ($attempt = 0; $attempt < $repeat; $attempt++) {
+        app(FeedbackDeliveryAttemptRecorderContract::class)->record(new FeedbackDeliveryAttemptData(
+            intent_key: 'claim.succeeded.claimant',
+            receipts: [
+                new FeedbackProviderReceiptData(
+                    intent_key: 'claim.succeeded.claimant',
+                    channel: $channel,
+                    recipient: new FeedbackRecipientData(type: 'claimant', id: 'user-1', email: 'user@example.test', phone: '+639171234567'),
+                    status: $status,
+                    provider_message_id: $providerMessageId,
+                    provider_status: strtoupper($status),
+                    provider_payload: ['provider' => $channel],
+                    correlation_id: 'execution-1',
+                    causation_id: 'feedback-run-1',
+                    occurred_at: $occurredAt ?? $meta['last_attempt_at'] ?? '2026-07-01T01:00:00+08:00',
+                    meta: $meta,
+                ),
+            ],
+        ));
+    }
 }

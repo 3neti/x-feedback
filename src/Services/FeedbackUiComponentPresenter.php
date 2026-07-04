@@ -162,6 +162,7 @@ final class FeedbackUiComponentPresenter implements FeedbackUiComponentPresenter
             component: $component,
             props: $props,
             meta: array_merge([
+                'portable' => true,
                 'cockpit_page' => false,
                 'owns_workflow' => false,
                 'owns_lifecycle_truth' => false,

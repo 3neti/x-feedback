@@ -117,6 +117,40 @@ it('models retry requests as handoff facts without queueing retries or mutating 
         ->and(FeedbackDeliveryRecord::query()->where('delivery_id', $deliveryId)->value('status'))->toBe(FeedbackDeliveryData::StatusFailedRetryable);
 });
 
+it('uses durable delivery fields when building retry request eligibility', function () {
+    $deliveryId = feedbackConsoleRecord(
+        status: FeedbackDeliveryData::StatusFailedRetryable,
+        channel: 'sms',
+        providerMessageId: 'sms-durable-console-retry',
+        meta: ['idempotency_key' => 'sms-durable-console-retry', 'attempts' => 1],
+    );
+
+    feedbackConsoleRecord(
+        status: FeedbackDeliveryData::StatusFailedRetryable,
+        channel: 'sms',
+        providerMessageId: 'sms-durable-console-retry',
+        meta: ['idempotency_key' => 'sms-durable-console-retry', 'attempts' => 1],
+    );
+    feedbackConsoleRecord(
+        status: FeedbackDeliveryData::StatusFailedRetryable,
+        channel: 'sms',
+        providerMessageId: 'sms-durable-console-retry',
+        meta: ['idempotency_key' => 'sms-durable-console-retry', 'attempts' => 1],
+    );
+
+    $request = app(FeedbackDeliveryConsoleContract::class)->retryRequest(
+        deliveryId: $deliveryId,
+        requestedBy: 'operator-1',
+        policy: new FeedbackRetryPolicyData(max_attempts: 3),
+        now: '2026-07-02T01:01:00+08:00',
+    );
+
+    expect(FeedbackDeliveryRecord::query()->where('delivery_id', $deliveryId)->value('attempt_count'))->toBe(3)
+        ->and($request->eligible)->toBeFalse()
+        ->and($request->decision->attempts)->toBe(3)
+        ->and($request->decision->classification)->toBe(FeedbackRetryDecisionData::ClassificationExhausted);
+});
+
 it('models retry requests for final records as ineligible handoff facts', function () {
     $deliveryId = feedbackConsoleRecord(status: FeedbackDeliveryData::StatusDelivered, channel: 'email', providerMessageId: 'email-delivered-1');
 

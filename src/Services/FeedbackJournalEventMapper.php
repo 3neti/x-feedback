@@ -146,6 +146,7 @@ final class FeedbackJournalEventMapper implements FeedbackJournalEventMapperCont
     {
         return [
             'journal_ready' => true,
+            'journal_handoff_only' => true,
             'canonical_source' => false,
             'x_journal_dependency' => false,
             'redacted' => $redacted,

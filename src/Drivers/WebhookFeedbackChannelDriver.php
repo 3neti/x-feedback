@@ -11,10 +11,26 @@ use LBHurtado\XFeedback\Data\FeedbackIntentData;
 use LBHurtado\XFeedback\Data\FeedbackRecipientData;
 use LBHurtado\XFeedback\Data\FeedbackWebhookMessageData;
 use LBHurtado\XFeedback\Drivers\Concerns\BuildsBaselineDeliveryData;
+use Throwable;
 
 final class WebhookFeedbackChannelDriver implements FeedbackChannelDriverContract
 {
     use BuildsBaselineDeliveryData;
+
+    /**
+     * @var array<int, string>
+     */
+    private array $sensitiveKeys = [
+        'api_key',
+        'apikey',
+        'authorization',
+        'client_secret',
+        'headers',
+        'password',
+        'secret',
+        'signature',
+        'token',
+    ];
 
     public function __construct(
         private readonly FeedbackWebhookSenderContract $sender,
@@ -26,20 +42,33 @@ final class WebhookFeedbackChannelDriver implements FeedbackChannelDriverContrac
         FeedbackChannelData $channel,
     ): FeedbackDeliveryData {
         $url = (string) $channel->options['url'];
-        $result = $this->sender->send(new FeedbackWebhookMessageData(
-            url: $url,
-            payload: $this->payload($intent, $recipient, $channel),
-            headers: (array) ($channel->options['headers'] ?? []),
-            secret: isset($channel->options['secret']) && is_string($channel->options['secret'])
-                ? $channel->options['secret']
-                : null,
-            meta: [
-                'source' => 'x-feedback',
-                'intent_key' => $intent->key,
-                'correlation_id' => $intent->context?->correlation_id,
-                'causation_id' => $intent->context?->causation_id,
-            ],
-        ));
+
+        try {
+            $result = $this->sender->send(new FeedbackWebhookMessageData(
+                url: $url,
+                payload: $this->payload($intent, $recipient, $channel),
+                headers: (array) ($channel->options['headers'] ?? []),
+                secret: isset($channel->options['secret']) && is_string($channel->options['secret'])
+                    ? $channel->options['secret']
+                    : null,
+                meta: [
+                    'source' => 'x-feedback',
+                    'intent_key' => $intent->key,
+                    'correlation_id' => $intent->context?->correlation_id,
+                    'causation_id' => $intent->context?->causation_id,
+                ],
+            ));
+        } catch (Throwable $exception) {
+            return $this->providerFailureDelivery(
+                driver: 'webhook',
+                transport: 'x_feedback_webhook_sender',
+                exception: $exception,
+                intent: $intent,
+                recipient: $recipient,
+                channel: $channel,
+                result: ['url' => $url],
+            );
+        }
 
         return new FeedbackDeliveryData(
             intent_key: $intent->key,
@@ -97,12 +126,50 @@ final class WebhookFeedbackChannelDriver implements FeedbackChannelDriverContrac
             ],
             'channel' => [
                 'key' => $channel->key,
-                'options' => $channel->options,
+                'options' => $this->redact($channel->options),
             ],
             'correlation_id' => $intent->context?->correlation_id,
             'causation_id' => $intent->context?->causation_id,
             'subject_type' => $intent->context?->subject_type,
             'subject_id' => $intent->context?->subject_id,
         ];
+    }
+
+    private function redact(array $payload): array
+    {
+        foreach ($payload as $key => $value) {
+            if (in_array(strtolower((string) $key), $this->sensitiveKeys, true)) {
+                if (is_array($value)) {
+                    $payload[$key] = $this->redactSensitiveArray($value);
+
+                    continue;
+                }
+
+                $payload[$key] = '[redacted]';
+
+                continue;
+            }
+
+            if (is_array($value)) {
+                $payload[$key] = $this->redact($value);
+            }
+        }
+
+        return $payload;
+    }
+
+    private function redactSensitiveArray(array $payload): array
+    {
+        foreach ($payload as $key => $value) {
+            if (in_array(strtolower((string) $key), $this->sensitiveKeys, true)) {
+                $payload[$key] = '[redacted]';
+
+                continue;
+            }
+
+            $payload[$key] = is_array($value) ? $this->redactSensitiveArray($value) : $value;
+        }
+
+        return $payload;
     }
 }

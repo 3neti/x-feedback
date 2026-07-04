@@ -17,9 +17,14 @@ final class FeedbackRetryFreshnessEvaluator implements FeedbackRetryFreshnessEva
     ): FeedbackRetryDecisionData {
         $policy ??= new FeedbackRetryPolicyData;
         $attempts = $this->attempts($record);
+        $maxAttempts = $record->max_attempts ?? $policy->max_attempts;
 
         if (in_array($record->status, $policy->final_statuses, true)) {
             return $this->decision(FeedbackRetryDecisionData::ClassificationFinal, false, false, $attempts, null, 'final_status', $record);
+        }
+
+        if ($this->isExpired($record, $now)) {
+            return $this->decision(FeedbackRetryDecisionData::ClassificationExpired, false, true, $attempts, null, 'expired_at', $record);
         }
 
         if ($this->isStale($record, $policy, $now)) {
@@ -27,7 +32,7 @@ final class FeedbackRetryFreshnessEvaluator implements FeedbackRetryFreshnessEva
         }
 
         if (in_array($record->status, $policy->retryable_statuses, true)) {
-            if ($attempts >= $policy->max_attempts) {
+            if ($attempts >= $maxAttempts) {
                 return $this->decision(FeedbackRetryDecisionData::ClassificationExhausted, false, false, $attempts, null, 'max_attempts', $record);
             }
 
@@ -72,9 +77,22 @@ final class FeedbackRetryFreshnessEvaluator implements FeedbackRetryFreshnessEva
 
     private function attempts(FeedbackDeliveryRecordData $record): int
     {
+        if ($record->attempt_count > 0) {
+            return $record->attempt_count;
+        }
+
         $attempts = $record->meta['attempts'] ?? 0;
 
         return is_numeric($attempts) ? max(0, (int) $attempts) : 0;
+    }
+
+    private function isExpired(FeedbackDeliveryRecordData $record, ?string $now): bool
+    {
+        if ($record->expires_at === null || $record->expires_at === '') {
+            return false;
+        }
+
+        return $this->timestamp($now) > (new DateTimeImmutable($record->expires_at))->getTimestamp();
     }
 
     private function isStale(FeedbackDeliveryRecordData $record, FeedbackRetryPolicyData $policy, ?string $now): bool
@@ -98,6 +116,10 @@ final class FeedbackRetryFreshnessEvaluator implements FeedbackRetryFreshnessEva
 
     private function lastAttemptAt(FeedbackDeliveryRecordData $record): ?DateTimeImmutable
     {
+        if ($record->last_attempted_at !== null && $record->last_attempted_at !== '') {
+            return new DateTimeImmutable($record->last_attempted_at);
+        }
+
         $value = $record->meta['last_attempt_at'] ?? null;
 
         return is_string($value) && $value !== '' ? new DateTimeImmutable($value) : null;

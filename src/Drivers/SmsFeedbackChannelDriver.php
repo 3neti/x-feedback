@@ -10,6 +10,7 @@ use LBHurtado\XFeedback\Data\FeedbackDeliveryData;
 use LBHurtado\XFeedback\Data\FeedbackIntentData;
 use LBHurtado\XFeedback\Data\FeedbackRecipientData;
 use LBHurtado\XFeedback\Drivers\Concerns\BuildsBaselineDeliveryData;
+use Throwable;
 
 final class SmsFeedbackChannelDriver implements FeedbackChannelDriverContract
 {
@@ -23,11 +24,26 @@ final class SmsFeedbackChannelDriver implements FeedbackChannelDriverContract
         $smsDriver = $channel->options['driver'] ?? config('x-feedback.transports.sms.driver', 'engagespark');
         $sender = $channel->options['sender'] ?? config('x-feedback.transports.sms.sender', 'XCHANGE');
 
-        $result = SMS::channel($smsDriver)
-            ->from($sender)
-            ->to($recipient->phone)
-            ->content($intent->message->body)
-            ->send();
+        try {
+            $result = SMS::channel($smsDriver)
+                ->from($sender)
+                ->to($recipient->phone)
+                ->content($intent->message->body)
+                ->send();
+        } catch (Throwable $exception) {
+            return $this->providerFailureDelivery(
+                driver: 'sms',
+                transport: 'lbhurtado_sms',
+                exception: $exception,
+                intent: $intent,
+                recipient: $recipient,
+                channel: $channel,
+                result: [
+                    'sms_driver' => $smsDriver,
+                    'sender' => $sender,
+                ],
+            );
+        }
 
         return new FeedbackDeliveryData(
             intent_key: $intent->key,
