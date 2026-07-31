@@ -4,6 +4,7 @@ use LBHurtado\XFeedback\Contracts\FeedbackJournalEventMapperContract;
 use LBHurtado\XFeedback\Contracts\FeedbackUiComponentPresenterContract;
 use LBHurtado\XFeedback\Data\FeedbackDeliveryConsoleRecordData;
 use LBHurtado\XFeedback\Data\FeedbackDeliveryData;
+use LBHurtado\XFeedback\Data\FeedbackDeliveryRecordData;
 use LBHurtado\XFeedback\Data\FeedbackJournalEventData;
 use LBHurtado\XFeedback\Data\FeedbackRecipientData;
 use LBHurtado\XFeedback\Data\FeedbackUiComponentData;
@@ -79,9 +80,9 @@ it('keeps ui components portable and page-free', function () {
         ->and($component->meta['cockpit_page'])->toBeFalse();
 });
 
-function feedbackArchitectureRecord(): LBHurtado\XFeedback\Data\FeedbackDeliveryRecordData
+function feedbackArchitectureRecord(): FeedbackDeliveryRecordData
 {
-    return new LBHurtado\XFeedback\Data\FeedbackDeliveryRecordData(
+    return new FeedbackDeliveryRecordData(
         intent_key: 'claim.succeeded.claimant',
         channel: 'sms',
         recipient: new FeedbackRecipientData(type: 'claimant', id: 'user-1'),

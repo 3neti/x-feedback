@@ -60,4 +60,3 @@ it('models explicit delivery states instead of booleans', function () {
         ->and(FeedbackDeliveryData::statuses())->toContain(FeedbackDeliveryData::StatusExpired)
         ->and($delivery->status)->toBe('pending');
 });
-

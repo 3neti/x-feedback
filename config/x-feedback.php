@@ -1,10 +1,10 @@
 <?php
 
-use LBHurtado\XFeedback\Drivers\NullFeedbackChannelDriver;
 use LBHurtado\XFeedback\Drivers\EmailFeedbackChannelDriver;
 use LBHurtado\XFeedback\Drivers\InAppFeedbackChannelDriver;
 use LBHurtado\XFeedback\Drivers\LogFeedbackChannelDriver;
 use LBHurtado\XFeedback\Drivers\MailFeedbackChannelDriver;
+use LBHurtado\XFeedback\Drivers\NullFeedbackChannelDriver;
 use LBHurtado\XFeedback\Drivers\SmsFeedbackChannelDriver;
 use LBHurtado\XFeedback\Drivers\WebhookFeedbackChannelDriver;
 

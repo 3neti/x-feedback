@@ -1,7 +1,7 @@
 <?php
 
-use LBHurtado\XFeedback\Contracts\FeedbackRetryFreshnessEvaluatorContract;
 use LBHurtado\XFeedback\Contracts\FeedbackDeliveryAttemptRecorderContract;
+use LBHurtado\XFeedback\Contracts\FeedbackRetryFreshnessEvaluatorContract;
 use LBHurtado\XFeedback\Data\FeedbackDeliveryAttemptData;
 use LBHurtado\XFeedback\Data\FeedbackDeliveryData;
 use LBHurtado\XFeedback\Data\FeedbackDeliveryRecordData;

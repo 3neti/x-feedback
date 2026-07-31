@@ -8,6 +8,7 @@ use LBHurtado\XFeedback\Data\FeedbackChannelSelectionPolicyData;
 use LBHurtado\XFeedback\Data\FeedbackContextData;
 use LBHurtado\XFeedback\Data\FeedbackDeliveryData;
 use LBHurtado\XFeedback\Data\FeedbackDispatchPreparationData;
+use LBHurtado\XFeedback\Data\FeedbackIntentData;
 use LBHurtado\XFeedback\Data\FeedbackMessageData;
 use LBHurtado\XFeedback\Data\FeedbackProviderReceiptData;
 use LBHurtado\XFeedback\Data\FeedbackRecipientData;
@@ -47,7 +48,7 @@ it('prepares a dispatch by resolving templates and then planning selected delive
 });
 
 it('does not dispatch provider delivery while preparing a dispatch', function () {
-    $preparation = app(FeedbackDispatchPreparerContract::class)->prepare(new \LBHurtado\XFeedback\Data\FeedbackIntentData(
+    $preparation = app(FeedbackDispatchPreparerContract::class)->prepare(new FeedbackIntentData(
         key: 'operator.alert',
         message: new FeedbackMessageData(title: 'Manual review', body: 'Review the claim.'),
         recipients: [
@@ -139,9 +140,9 @@ it('keeps dispatch preparation independent from provider delivery persistence ro
         ->and(class_exists('LBHurtado\\XChange\\XChangeServiceProvider'))->toBeFalse();
 });
 
-function feedbackPreparationIntent(array $recipients = [], array $channels = []): \LBHurtado\XFeedback\Data\FeedbackIntentData
+function feedbackPreparationIntent(array $recipients = [], array $channels = []): FeedbackIntentData
 {
-    return new \LBHurtado\XFeedback\Data\FeedbackIntentData(
+    return new FeedbackIntentData(
         key: 'claim.succeeded.claimant',
         message: new FeedbackMessageData(
             title: '',

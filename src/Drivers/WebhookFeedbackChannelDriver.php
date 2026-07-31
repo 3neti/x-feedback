@@ -2,8 +2,8 @@
 
 namespace LBHurtado\XFeedback\Drivers;
 
-use LBHurtado\XFeedback\Contracts\FeedbackWebhookSenderContract;
 use LBHurtado\XFeedback\Contracts\FeedbackChannelDriverContract;
+use LBHurtado\XFeedback\Contracts\FeedbackWebhookSenderContract;
 use LBHurtado\XFeedback\Data\FeedbackChannelData;
 use LBHurtado\XFeedback\Data\FeedbackChannelHealthData;
 use LBHurtado\XFeedback\Data\FeedbackDeliveryData;

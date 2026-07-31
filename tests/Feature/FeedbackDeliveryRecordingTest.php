@@ -4,7 +4,6 @@ use LBHurtado\XFeedback\Contracts\FeedbackDeliveryAttemptRecorderContract;
 use LBHurtado\XFeedback\Contracts\FeedbackDeliveryAttemptRuntimeContract;
 use LBHurtado\XFeedback\Contracts\FeedbackDispatchPreparerContract;
 use LBHurtado\XFeedback\Data\FeedbackChannelData;
-use LBHurtado\XFeedback\Data\FeedbackDeliveryAttemptData;
 use LBHurtado\XFeedback\Data\FeedbackDeliveryRecordData;
 use LBHurtado\XFeedback\Data\FeedbackIntentData;
 use LBHurtado\XFeedback\Data\FeedbackMessageData;

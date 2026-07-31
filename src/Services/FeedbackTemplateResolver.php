@@ -2,8 +2,8 @@
 
 namespace LBHurtado\XFeedback\Services;
 
-use LBHurtado\XFeedback\Contracts\FeedbackTemplateRegistryContract;
 use LBHurtado\XFeedback\Contracts\FeedbackTemplatePolicyResolverContract;
+use LBHurtado\XFeedback\Contracts\FeedbackTemplateRegistryContract;
 use LBHurtado\XFeedback\Contracts\FeedbackTemplateResolverContract;
 use LBHurtado\XFeedback\Data\FeedbackIntentData;
 use LBHurtado\XFeedback\Data\FeedbackMessageData;
@@ -108,5 +108,4 @@ final class FeedbackTemplateResolver implements FeedbackTemplateResolverContract
 
         return is_scalar($profile) ? (string) $profile : null;
     }
-
 }

@@ -7,6 +7,7 @@ use LBHurtado\XFeedback\Contracts\FeedbackTemplateRegistryContract;
 use LBHurtado\XFeedback\Contracts\FeedbackTemplateResolverContract;
 use LBHurtado\XFeedback\Services\ConfigFeedbackCredentialResolver;
 use LBHurtado\XFeedback\Services\FeedbackTemplateResolver;
+use LBHurtado\XFeedback\XFeedbackServiceProvider;
 
 it('binds the core feedback contracts', function () {
     expect(app(FeedbackDispatcherContract::class))->toBeInstanceOf(FeedbackDispatcherContract::class)
@@ -21,7 +22,7 @@ it('merges package configuration defaults', function () {
 });
 
 it('publishes the package configuration', function () {
-    $provider = app()->getProvider(LBHurtado\XFeedback\XFeedbackServiceProvider::class);
+    $provider = app()->getProvider(XFeedbackServiceProvider::class);
 
     expect($provider)->not->toBeNull();
 });
