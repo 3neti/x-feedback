@@ -127,8 +127,6 @@ final class XFeedbackServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->loadViewsFrom(dirname(__DIR__).'/resources/views', 'x-feedback');
-
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 dirname(__DIR__).'/config/x-feedback.php' => config_path('x-feedback.php'),
