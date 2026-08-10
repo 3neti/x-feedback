@@ -1,13 +1,16 @@
 <?php
 
 use LBHurtado\XFeedback\Contracts\FeedbackActionArtifactRendererContract;
+use LBHurtado\XFeedback\Contracts\FeedbackChannelContentRendererContract;
 use LBHurtado\XFeedback\Data\FeedbackActionRenderingPolicyData;
 use LBHurtado\XFeedback\Data\FeedbackArtifactRenderingPolicyData;
 use LBHurtado\XFeedback\Data\FeedbackChannelData;
 use LBHurtado\XFeedback\Data\FeedbackContextData;
 use LBHurtado\XFeedback\Data\FeedbackIntentData;
 use LBHurtado\XFeedback\Data\FeedbackMessageData;
+use LBHurtado\XFeedback\Data\FeedbackRecipientData;
 use LBHurtado\XFeedback\Data\FeedbackRenderingDecisionData;
+use LBHurtado\XFeedback\Mail\FeedbackEmailMessage;
 use LBHurtado\XFeedback\Services\FeedbackActionArtifactRenderer;
 
 it('models action and artifact rendering policies as presentation rules only', function () {
@@ -204,6 +207,59 @@ it('keeps rendering policy independent from x-action artifact storage file gener
         ->and(class_exists('LBHurtado\\XAction\\XActionServiceProvider'))->toBeFalse()
         ->and(class_exists('LBHurtado\\XJournal\\XJournalServiceProvider'))->toBeFalse()
         ->and(class_exists('LBHurtado\\XChange\\XChangeServiceProvider'))->toBeFalse();
+});
+
+it('renders one safe action link for sms and hides evidence artifacts', function () {
+    $intent = feedbackRenderingIntent(
+        actions: [
+            ['key' => 'claim.view', 'label' => 'Review redemption', 'target' => 'https://example.test/cockpit/pay-codes/SAFE?tab=claim'],
+            ['key' => 'help', 'label' => 'Help', 'target' => 'https://example.test/help'],
+        ],
+        artifacts: [
+            ['type' => 'selfie', 'label' => 'Selfie captured', 'url' => 'https://example.test/private/selfie'],
+        ],
+    );
+
+    $content = app(FeedbackChannelContentRendererContract::class)->text($intent, 'sms');
+
+    expect($content)
+        ->toContain('Your claim is ready.')
+        ->toContain('Review redemption: https://example.test/cockpit/pay-codes/SAFE?tab=claim')
+        ->not->toContain('https://example.test/help')
+        ->not->toContain('private/selfie');
+});
+
+it('renders escaped email content with authenticated actions and evidence availability', function () {
+    $intent = new FeedbackIntentData(
+        key: 'claim.approved.claimant',
+        message: new FeedbackMessageData(
+            title: 'Pay Code <unsafe>',
+            body: 'Claimed by <script>alert("unsafe")</script>',
+            actions: [
+                ['key' => 'claim.view', 'label' => 'Review redemption', 'target' => 'https://example.test/cockpit/pay-codes/SAFE?tab=claim'],
+            ],
+            artifacts: [
+                ['type' => 'signature', 'label' => 'Signature captured', 'url' => 'https://example.test/cockpit/pay-codes/SAFE?tab=claim', 'preview' => 'Available after sign in'],
+            ],
+        ),
+        channels: [new FeedbackChannelData(key: 'email')],
+    );
+    $renderer = app(FeedbackChannelContentRendererContract::class);
+    $channel = new FeedbackChannelData(key: 'email');
+    $mail = new FeedbackEmailMessage(
+        intent: $intent,
+        recipient: new FeedbackRecipientData(type: 'issuer', id: 'issuer-1', email: 'issuer@example.test'),
+        channel: $channel,
+        decision: $renderer->decision($intent, $channel),
+    );
+    $html = $mail->render();
+
+    expect($html)
+        ->toContain('Review redemption')
+        ->toContain('Signature captured')
+        ->toContain('Private evidence remains protected')
+        ->toContain('Claimed by &lt;script&gt;alert(&quot;unsafe&quot;)&lt;/script&gt;')
+        ->not->toContain('<script>alert("unsafe")</script>');
 });
 
 function feedbackRenderingIntent(array $actions = [], array $artifacts = []): FeedbackIntentData

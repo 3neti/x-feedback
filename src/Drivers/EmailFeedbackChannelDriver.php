@@ -3,6 +3,7 @@
 namespace LBHurtado\XFeedback\Drivers;
 
 use Illuminate\Support\Facades\Mail;
+use LBHurtado\XFeedback\Contracts\FeedbackChannelContentRendererContract;
 use LBHurtado\XFeedback\Contracts\FeedbackChannelDriverContract;
 use LBHurtado\XFeedback\Data\FeedbackChannelData;
 use LBHurtado\XFeedback\Data\FeedbackChannelHealthData;
@@ -17,13 +18,22 @@ final class EmailFeedbackChannelDriver implements FeedbackChannelDriverContract
 {
     use BuildsBaselineDeliveryData;
 
+    public function __construct(
+        private readonly FeedbackChannelContentRendererContract $renderer,
+    ) {}
+
     public function send(
         FeedbackIntentData $intent,
         FeedbackRecipientData $recipient,
         FeedbackChannelData $channel,
     ): FeedbackDeliveryData {
         try {
-            Mail::to($recipient->email)->send(new FeedbackEmailMessage($intent, $recipient, $channel));
+            Mail::to($recipient->email)->send(new FeedbackEmailMessage(
+                $intent,
+                $recipient,
+                $channel,
+                $this->renderer->decision($intent, $channel),
+            ));
         } catch (Throwable $exception) {
             return $this->providerFailureDelivery(
                 driver: 'email',

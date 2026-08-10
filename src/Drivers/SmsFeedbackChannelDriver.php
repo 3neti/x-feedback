@@ -3,6 +3,7 @@
 namespace LBHurtado\XFeedback\Drivers;
 
 use LBHurtado\SMS\Facades\SMS;
+use LBHurtado\XFeedback\Contracts\FeedbackChannelContentRendererContract;
 use LBHurtado\XFeedback\Contracts\FeedbackChannelDriverContract;
 use LBHurtado\XFeedback\Data\FeedbackChannelData;
 use LBHurtado\XFeedback\Data\FeedbackChannelHealthData;
@@ -16,6 +17,10 @@ final class SmsFeedbackChannelDriver implements FeedbackChannelDriverContract
 {
     use BuildsBaselineDeliveryData;
 
+    public function __construct(
+        private readonly FeedbackChannelContentRendererContract $renderer,
+    ) {}
+
     public function send(
         FeedbackIntentData $intent,
         FeedbackRecipientData $recipient,
@@ -28,7 +33,7 @@ final class SmsFeedbackChannelDriver implements FeedbackChannelDriverContract
             $result = SMS::channel($smsDriver)
                 ->from($sender)
                 ->to($recipient->phone)
-                ->content($intent->message->body)
+                ->content($this->renderer->text($intent, $channel))
                 ->send();
         } catch (Throwable $exception) {
             return $this->providerFailureDelivery(

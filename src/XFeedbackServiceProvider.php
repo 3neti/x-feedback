@@ -4,6 +4,7 @@ namespace LBHurtado\XFeedback;
 
 use Illuminate\Support\ServiceProvider;
 use LBHurtado\XFeedback\Contracts\FeedbackActionArtifactRendererContract;
+use LBHurtado\XFeedback\Contracts\FeedbackChannelContentRendererContract;
 use LBHurtado\XFeedback\Contracts\FeedbackChannelRegistryContract;
 use LBHurtado\XFeedback\Contracts\FeedbackChannelSelectorContract;
 use LBHurtado\XFeedback\Contracts\FeedbackCredentialResolverContract;
@@ -33,6 +34,7 @@ use LBHurtado\XFeedback\Data\FeedbackTemplateResolutionPolicyData;
 use LBHurtado\XFeedback\Services\ConfigFeedbackCredentialResolver;
 use LBHurtado\XFeedback\Services\DatabaseFeedbackDeliveryAttemptRecorder;
 use LBHurtado\XFeedback\Services\FeedbackActionArtifactRenderer;
+use LBHurtado\XFeedback\Services\FeedbackChannelContentRenderer;
 use LBHurtado\XFeedback\Services\FeedbackChannelRegistry;
 use LBHurtado\XFeedback\Services\FeedbackChannelSelector;
 use LBHurtado\XFeedback\Services\FeedbackDeliveryAttemptRuntime;
@@ -83,6 +85,7 @@ final class XFeedbackServiceProvider extends ServiceProvider
                 artifactPolicies: (array) config('x-feedback.rendering.artifacts', []),
             );
         });
+        $this->app->singleton(FeedbackChannelContentRendererContract::class, FeedbackChannelContentRenderer::class);
 
         $this->app->singleton(FeedbackNotificationRouteResolverContract::class, function (): FeedbackNotificationRouteResolver {
             return new FeedbackNotificationRouteResolver((array) config('x-feedback.notification_routes', []));
@@ -124,6 +127,8 @@ final class XFeedbackServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->loadViewsFrom(dirname(__DIR__).'/resources/views', 'x-feedback');
+
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 dirname(__DIR__).'/config/x-feedback.php' => config_path('x-feedback.php'),
