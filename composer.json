@@ -25,6 +25,9 @@
                 "LBHurtado\\XFeedback\\XFeedbackServiceProvider"
             ]
         },
+        "settlement-os": {
+            "queue-manifest": "resources/settlement-os/queues.php"
+        },
         "branch-alias": {
             "dev-main": "1.x-dev"
         }
