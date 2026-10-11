@@ -12,6 +12,12 @@ Who should be informed, how, and with what delivery result?
 
 It does not decide workflow meaning, execute actions, or own lifecycle truth.
 
+## Settled payment SMS extension (2026-10-11)
+
+The x-change settled-payment pipeline supplies an immutable payment feedback intent. x-feedback owns the generic and combined Campaign payment SMS templates, delivery evidence, and a payment-SMS-specific daily allowance. The existing x-change EngageSpark adapter makes the queued provider call. The allowance is 100 provider send attempts per Asia/Manila day by default and may be lowered or disabled by the host. The Contact link, settlement decision, and recipient evidence remain in x-change. A delivery failure must never change a settled payment.
+
+The package implementation is complete in an isolated worktree. Release, host synchronization, and cloud activation gates are tracked in x-change's `docs/architecture/payment-feedback/PAYMENT_FEEDBACK_PLAN.md` and companion compass. The code has not been deployed.
+
 ## Current Phase
 
 Wave 3 — x-feedback  

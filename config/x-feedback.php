@@ -9,6 +9,13 @@ use LBHurtado\XFeedback\Drivers\SmsFeedbackChannelDriver;
 use LBHurtado\XFeedback\Drivers\WebhookFeedbackChannelDriver;
 
 return [
+    'payment_sms' => [
+        'daily_attempt_cap' => (int) env('X_FEEDBACK_PAYMENT_SMS_DAILY_ATTEMPT_CAP', 100),
+        'templates' => [
+            'generic' => 'You paid ₱:amount. Thank you.',
+            'campaign' => 'You paid ₱:amount. :completion',
+        ],
+    ],
     'channels' => [
         'null' => NullFeedbackChannelDriver::class,
         'log' => LogFeedbackChannelDriver::class,
