@@ -20,6 +20,13 @@ final class PaymentSmsContent
         ]);
     }
 
+    public function authenticatedIssuance(int $grossAmountMinor): string
+    {
+        return trans('x-feedback::payment_sms.authenticated_issuance', [
+            'amount_paid' => $this->amount($grossAmountMinor),
+        ]);
+    }
+
     public function payCodeIssued(int $grossAmountMinor, int $codeValueMinor, string $code, string $claimUrl): string
     {
         return trans('x-feedback::payment_sms.pay_code_issued', [

@@ -23,6 +23,7 @@ it('renders one payment message with the gross amount and campaign link', functi
 
     expect($content->generic(5000))->toBe('You paid ₱50.00. Thank you.')
         ->and($content->topUp(5000))->toBe('Top-up payment of ₱50.00 received.')
+        ->and($content->authenticatedIssuance(5201))->toBe('We received your ₱52.01 payment for Pay Code issuance. Thank you.')
         ->and($content->payCodeIssued(5201, 4500, 'ABC123', 'https://example.test/claim/ABC123'))
         ->toBe('Paid ₱52.01. ₱45.00 Pay Code ABC123 is ready: https://example.test/claim/ABC123')
         ->and($content->campaign(5000, 'Finish here: https://example.test/claim'))
