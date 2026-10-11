@@ -127,10 +127,15 @@ final class XFeedbackServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->loadTranslationsFrom(dirname(__DIR__).'/lang', 'x-feedback');
+
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 dirname(__DIR__).'/config/x-feedback.php' => config_path('x-feedback.php'),
             ], 'x-feedback-config');
+            $this->publishes([
+                dirname(__DIR__).'/lang' => lang_path('vendor/x-feedback'),
+            ], 'x-feedback-lang');
         }
 
         $this->loadMigrationsFrom(dirname(__DIR__).'/database/migrations');

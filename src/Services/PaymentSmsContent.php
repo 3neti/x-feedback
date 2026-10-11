@@ -8,19 +8,38 @@ final class PaymentSmsContent
 {
     public function generic(int $grossAmountMinor): string
     {
-        return str_replace(
-            ':amount',
-            number_format($grossAmountMinor / 100, 2),
-            (string) config('x-feedback.payment_sms.templates.generic', 'You paid ₱:amount. Thank you.'),
-        );
+        return trans('x-feedback::payment_sms.generic', [
+            'amount_paid' => $this->amount($grossAmountMinor),
+        ]);
+    }
+
+    public function topUp(int $grossAmountMinor): string
+    {
+        return trans('x-feedback::payment_sms.top_up_received', [
+            'amount_paid' => $this->amount($grossAmountMinor),
+        ]);
+    }
+
+    public function payCodeIssued(int $grossAmountMinor, int $codeValueMinor, string $code, string $claimUrl): string
+    {
+        return trans('x-feedback::payment_sms.pay_code_issued', [
+            'amount_paid' => $this->amount($grossAmountMinor),
+            'code_value' => $this->amount($codeValueMinor),
+            'code' => $code,
+            'claim_url' => $claimUrl,
+        ]);
     }
 
     public function campaign(int $grossAmountMinor, string $completionText): string
     {
-        return str_replace(
-            [':amount', ':completion'],
-            [number_format($grossAmountMinor / 100, 2), $completionText],
-            (string) config('x-feedback.payment_sms.templates.campaign', 'You paid ₱:amount. :completion'),
-        );
+        return trans('x-feedback::payment_sms.campaign', [
+            'amount_paid' => $this->amount($grossAmountMinor),
+            'completion' => $completionText,
+        ]);
+    }
+
+    private function amount(int $amountMinor): string
+    {
+        return number_format($amountMinor / 100, 2);
     }
 }
